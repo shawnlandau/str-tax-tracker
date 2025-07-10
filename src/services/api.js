@@ -36,6 +36,8 @@ class ApiService {
       '/properties': () => mockApiService.getProperties(),
       '/transactions': () => mockApiService.getTransactions(),
       '/depreciation': () => mockApiService.getDepreciation(),
+      '/tax-forms/data': () => mockApiService.getTaxFormsData(2024),
+      '/tax-forms/summary': () => mockApiService.getTaxSummary(2024),
     }
 
     // Handle dynamic endpoints like /properties/1
@@ -52,6 +54,11 @@ class ApiService {
     if (endpoint.startsWith('/depreciation/property/')) {
       const propertyId = endpoint.split('/').pop()
       return mockApiService.getPropertyDepreciation(propertyId)
+    }
+
+    if (endpoint.startsWith('/tax-forms/forms/')) {
+      const year = endpoint.split('/').pop()
+      return mockApiService.getTaxFormsData(year)
     }
 
     const mockMethod = mockMap[endpoint]

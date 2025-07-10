@@ -193,7 +193,112 @@ export const mockDashboardData = {
       annual_depreciation: 9090,
       accumulated_depreciation: 18180
     }
-  ]
+  ],
+  taxForms: {
+    2024: {
+      properties: [
+        {
+          id: 1,
+          address: "123 Main St, City, ST",
+          purchase_price: 380000,
+          section_179_deduction: 1000000, // Section 179 limit
+          bonus_depreciation: 0, // No bonus depreciation when using Section 179
+          rental_income: 26400,
+          net_rental_income: 18000,
+          placed_in_service_date: "2024-03-15",
+          business_use_percentage: 100,
+          annual_insurance: 1200,
+          annual_mortgage_interest: 18000,
+          annual_property_taxes: 3800,
+          annual_hoa_fees: 0
+        },
+        {
+          id: 2,
+          address: "456 Oak Ave, City, ST",
+          purchase_price: 320000,
+          section_179_deduction: 320000,
+          bonus_depreciation: 0,
+          rental_income: 22800,
+          net_rental_income: 15000,
+          placed_in_service_date: "2024-06-20",
+          business_use_percentage: 100,
+          annual_insurance: 1000,
+          annual_mortgage_interest: 15000,
+          annual_property_taxes: 3200,
+          annual_hoa_fees: 2400
+        },
+        {
+          id: 3,
+          address: "789 Pine Rd, City, ST",
+          purchase_price: 250000,
+          section_179_deduction: 250000,
+          bonus_depreciation: 0,
+          rental_income: 19200,
+          net_rental_income: 12000,
+          placed_in_service_date: "2024-01-10",
+          business_use_percentage: 100,
+          annual_insurance: 800,
+          annual_mortgage_interest: 12000,
+          annual_property_taxes: 2500,
+          annual_hoa_fees: 3600
+        },
+        {
+          id: 4,
+          address: "321 Elm St, City, ST",
+          purchase_price: 450000,
+          section_179_deduction: 450000,
+          bonus_depreciation: 0,
+          rental_income: 28800,
+          net_rental_income: 20000,
+          placed_in_service_date: "2024-11-05",
+          business_use_percentage: 100,
+          annual_insurance: 1500,
+          annual_mortgage_interest: 22000,
+          annual_property_taxes: 4500,
+          annual_hoa_fees: 0
+        },
+        {
+          id: 5,
+          address: "654 Maple Dr, City, ST",
+          purchase_price: 300000,
+          section_179_deduction: 300000,
+          bonus_depreciation: 0,
+          rental_income: 0,
+          net_rental_income: -5000,
+          placed_in_service_date: "2024-04-12",
+          business_use_percentage: 100,
+          annual_insurance: 1200,
+          annual_mortgage_interest: 15000,
+          annual_property_taxes: 3000,
+          annual_hoa_fees: 0
+        }
+      ],
+      totals: {
+        total_purchase_price: 1700000,
+        total_section_179: 2320000, // Exceeds limit, will be capped
+        total_bonus_depreciation: 0,
+        total_rental_income: 97200,
+        total_net_income: 60000
+      },
+      forms_needed: [
+        "Form 4562 - Depreciation and Amortization",
+        "Schedule E - Supplemental Income and Loss",
+        "Form 4797 - Sales of Business Property (if applicable)",
+        "Form 8829 - Expenses for Business Use of Home (if applicable)",
+        "Schedule 1 - Additional Income and Adjustments to Income",
+        "Form 1040 - Individual Income Tax Return"
+      ],
+      compliance_checklist: [
+        "✓ Properties placed in service in 2024",
+        "✓ Business use percentage 100%",
+        "✓ Section 179 election made",
+        "✓ Total cost under $2,700,000 limit",
+        "✓ No personal use of properties",
+        "✓ Proper documentation maintained",
+        "✓ Tax professional consultation recommended"
+      ]
+    }
+  }
 }
 
 export const mockApiService = {
@@ -231,5 +336,15 @@ export const mockApiService = {
   async getPropertyDepreciation(propertyId) {
     await new Promise(resolve => setTimeout(resolve, 200))
     return mockDashboardData.depreciation.filter(d => d.property_id === parseInt(propertyId))
+  },
+
+  async getTaxFormsData(year) {
+    await new Promise(resolve => setTimeout(resolve, 400))
+    return mockDashboardData.taxForms[year] || mockDashboardData.taxForms[2024]
+  },
+
+  async getTaxSummary(year) {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    return mockDashboardData.taxForms[year] || mockDashboardData.taxForms[2024]
   }
 } 
