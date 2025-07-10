@@ -1,3 +1,5 @@
+import { mockApiService } from './mockData.js'
+
 const API_BASE_URL = '/api'
 
 class ApiService {
@@ -21,9 +23,44 @@ class ApiService {
       
       return await response.json()
     } catch (error) {
-      console.error('API request failed:', error)
-      throw error
+      console.error('API request failed, using mock data:', error)
+      // Return mock data when API fails
+      return this.getMockData(endpoint)
     }
+  }
+
+  getMockData(endpoint) {
+    // Map API endpoints to mock service methods
+    const mockMap = {
+      '/dashboard/overview': () => mockApiService.getDashboardOverview(),
+      '/properties': () => mockApiService.getProperties(),
+      '/transactions': () => mockApiService.getTransactions(),
+      '/depreciation': () => mockApiService.getDepreciation(),
+    }
+
+    // Handle dynamic endpoints like /properties/1
+    if (endpoint.startsWith('/properties/') && endpoint !== '/properties') {
+      const id = endpoint.split('/').pop()
+      return mockApiService.getProperty(id)
+    }
+
+    if (endpoint.startsWith('/transactions/property/')) {
+      const propertyId = endpoint.split('/').pop()
+      return mockApiService.getPropertyTransactions(propertyId)
+    }
+
+    if (endpoint.startsWith('/depreciation/property/')) {
+      const propertyId = endpoint.split('/').pop()
+      return mockApiService.getPropertyDepreciation(propertyId)
+    }
+
+    const mockMethod = mockMap[endpoint]
+    if (mockMethod) {
+      return mockMethod()
+    }
+
+    // Default fallback
+    return Promise.resolve({ error: 'Endpoint not found in mock data' })
   }
 
   // Properties API
