@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Calendar, DollarSign, User } from 'lucide-react'
-import api from '../services/api'
+import { apiService } from '../services/api'
 import BookingModal from '../components/bookings/BookingModal'
 
 const Bookings = () => {
@@ -19,7 +19,7 @@ const Bookings = () => {
 
   const fetchBookings = async () => {
     try {
-      const data = await api.getBookings()
+      const data = await apiService.getBookings()
       setBookings(data)
     } catch (error) {
       console.error('Error fetching bookings:', error)
@@ -30,7 +30,7 @@ const Bookings = () => {
 
   const fetchProperties = async () => {
     try {
-      const data = await api.getProperties()
+      const data = await apiService.getProperties()
       setProperties(data)
     } catch (error) {
       console.error('Error fetching properties:', error)
@@ -39,7 +39,7 @@ const Bookings = () => {
 
   const fetchStats = async () => {
     try {
-      const data = await api.getBookingStats()
+      const data = await apiService.getBookingStats()
       setStats(data)
     } catch (error) {
       console.error('Error fetching booking stats:', error)
@@ -49,9 +49,9 @@ const Bookings = () => {
   const handleSave = async (bookingData) => {
     try {
       if (selectedBooking) {
-        await api.updateBooking(selectedBooking.id, bookingData)
+        await apiService.updateBooking(selectedBooking.id, bookingData)
       } else {
-        await api.createBooking(bookingData)
+        await apiService.createBooking(bookingData)
       }
       fetchBookings()
       fetchStats()
@@ -65,7 +65,7 @@ const Bookings = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this booking?')) {
       try {
-        await api.deleteBooking(id)
+        await apiService.deleteBooking(id)
         fetchBookings()
         fetchStats()
       } catch (error) {

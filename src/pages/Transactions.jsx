@@ -1,72 +1,32 @@
-import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Receipt } from 'lucide-react'
-import api from '../services/api'
-import TransactionModal from '../components/transactions/TransactionModal'
+import React, { useState, useEffect } from 'react'
+import { apiService } from '../services/api'
+import { 
+  PlusIcon, 
+  CurrencyDollarIcon,
+  ExclamationTriangleIcon
+} from '@heroicons/react/24/outline'
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([])
-  const [properties, setProperties] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-  const [editingTransaction, setEditingTransaction] = useState(null)
 
   useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
-    try {
-      setLoading(true)
-      const [transactionsData, propertiesData] = await Promise.all([
-        api.getTransactions(),
-        api.getProperties()
-      ])
-      setTransactions(transactionsData)
-      setProperties(propertiesData)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleCreateTransaction = async (transactionData) => {
-    try {
-      await api.createTransaction(transactionData)
-      setShowModal(false)
-      loadData()
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const handleUpdateTransaction = async (id, transactionData) => {
-    try {
-      await api.updateTransaction(id, transactionData)
-      setShowModal(false)
-      setEditingTransaction(null)
-      loadData()
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const handleDeleteTransaction = async (id) => {
-    if (window.confirm('Are you sure you want to delete this transaction? This action cannot be undone.')) {
+    const fetchTransactions = async () => {
       try {
-        await api.deleteTransaction(id)
-        loadData()
+        setLoading(true)
+        const data = await apiService.getTransactions()
+        setTransactions(data)
       } catch (err) {
-        setError(err.message)
+        setError('Failed to load transactions')
+        console.error('Transactions error:', err)
+      } finally {
+        setLoading(false)
       }
     }
-  }
 
-  const openEditModal = (transaction) => {
-    setEditingTransaction(transaction)
-    setShowModal(true)
-  }
+    fetchTransactions()
+  }, [])
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -74,159 +34,88 @@ const Transactions = () => {
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount || 0)
+    }).format(amount)
   }
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString()
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Transactions</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
           <p className="text-gray-600">Track income and expenses for your properties</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center"
-        >
-          <Plus className="h-4 w-4 mr-2" />
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+          <PlusIcon className="h-5 w-5 mr-2" />
           Add Transaction
         </button>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
-
-      {/* Transactions Table */}
-      <div className="card">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Property
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {transactions.map((transaction) => (
-                <tr key={transaction.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatDate(transaction.date)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {transaction.property_address}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      transaction.type === 'income' 
-                        ? 'bg-success-100 text-success-800' 
-                        : 'bg-danger-100 text-danger-800'
-                    }`}>
-                      {transaction.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
-                    {transaction.category}
-                  </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-                    transaction.type === 'income' ? 'text-success-600' : 'text-danger-600'
-                  }`}>
-                    {formatCurrency(transaction.amount)}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {transaction.description || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => openEditModal(transaction)}
-                        className="text-warning-600 hover:text-warning-700"
-                        title="Edit Transaction"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteTransaction(transaction.id)}
-                        className="text-danger-600 hover:text-danger-700"
-                        title="Delete Transaction"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+      {transactions.length > 0 ? (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {transactions.map((transaction) => (
+              <div key={transaction.id} className="px-6 py-4 hover:bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium text-gray-900">{transaction.description}</h3>
+                      <span className={`text-sm font-semibold ${
+                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                      </span>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Empty State */}
-      {transactions.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <Receipt className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No transactions</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Get started by adding your first transaction.
-          </p>
-          <div className="mt-6">
-            <button
-              onClick={() => setShowModal(true)}
-              className="btn-primary"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Transaction
-            </button>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-sm text-gray-500">{transaction.category}</span>
+                      <span className="text-sm text-gray-500">{formatDate(transaction.date)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
-
-      {/* Transaction Modal */}
-      {showModal && (
-        <TransactionModal
-          transaction={editingTransaction}
-          properties={properties}
-          onSave={editingTransaction ? handleUpdateTransaction : handleCreateTransaction}
-          onClose={() => {
-            setShowModal(false)
-            setEditingTransaction(null)
-          }}
-        />
+      ) : (
+        <div className="text-center py-12">
+          <CurrencyDollarIcon className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Transactions Recorded</h3>
+          <p className="text-gray-600 mb-6">Start tracking your property income and expenses by adding your first transaction.</p>
+          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto">
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Add Your First Transaction
+          </button>
+        </div>
       )}
     </div>
   )

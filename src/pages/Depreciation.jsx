@@ -1,72 +1,32 @@
-import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Calculator } from 'lucide-react'
-import api from '../services/api'
-import DepreciationModal from '../components/depreciation/DepreciationModal'
+import React, { useState, useEffect } from 'react'
+import { apiService } from '../services/api'
+import { 
+  PlusIcon, 
+  CalculatorIcon,
+  ExclamationTriangleIcon
+} from '@heroicons/react/24/outline'
 
 const Depreciation = () => {
   const [depreciation, setDepreciation] = useState([])
-  const [properties, setProperties] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-  const [editingDepreciation, setEditingDepreciation] = useState(null)
 
   useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
-    try {
-      setLoading(true)
-      const [depreciationData, propertiesData] = await Promise.all([
-        api.getDepreciation(),
-        api.getProperties()
-      ])
-      setDepreciation(depreciationData)
-      setProperties(propertiesData)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleCreateDepreciation = async (depreciationData) => {
-    try {
-      await api.createDepreciation(depreciationData)
-      setShowModal(false)
-      loadData()
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const handleUpdateDepreciation = async (id, depreciationData) => {
-    try {
-      await api.updateDepreciation(id, depreciationData)
-      setShowModal(false)
-      setEditingDepreciation(null)
-      loadData()
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const handleDeleteDepreciation = async (id) => {
-    if (window.confirm('Are you sure you want to delete this depreciation record? This action cannot be undone.')) {
+    const fetchDepreciation = async () => {
       try {
-        await api.deleteDepreciation(id)
-        loadData()
+        setLoading(true)
+        const data = await apiService.getDepreciation()
+        setDepreciation(data)
       } catch (err) {
-        setError(err.message)
+        setError('Failed to load depreciation data')
+        console.error('Depreciation error:', err)
+      } finally {
+        setLoading(false)
       }
     }
-  }
 
-  const openEditModal = (depreciationRecord) => {
-    setEditingDepreciation(depreciationRecord)
-    setShowModal(true)
-  }
+    fetchDepreciation()
+  }, [])
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -74,145 +34,107 @@ const Depreciation = () => {
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount || 0)
-  }
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString()
+    }).format(amount)
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Depreciation Data</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Depreciation</h1>
-          <p className="text-gray-600">Track straight-line and bonus depreciation for tax purposes</p>
+          <h1 className="text-3xl font-bold text-gray-900">Depreciation Calculator</h1>
+          <p className="text-gray-600">Track depreciation for tax purposes</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Depreciation
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+          <PlusIcon className="h-5 w-5 mr-2" />
+          Add Property
         </button>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
-
-      {/* Depreciation Table */}
-      <div className="card">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Property
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Year
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Straight Line
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Bonus Depreciation
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {depreciation.map((record) => (
-                <tr key={record.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {record.property_address}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {record.year}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatCurrency(record.straight_line)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatCurrency(record.bonus_depreciation)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600">
-                    {formatCurrency(record.total_depreciation)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => openEditModal(record)}
-                        className="text-warning-600 hover:text-warning-700"
-                        title="Edit Depreciation"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteDepreciation(record.id)}
-                        className="text-danger-600 hover:text-danger-700"
-                        title="Delete Depreciation"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+      {depreciation.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Depreciation Summary</h2>
+            <div className="space-y-4">
+              {depreciation.map((item) => (
+                <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-medium text-gray-900 mb-2">Property {item.property_id}</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Building Value:</span>
+                      <span className="font-medium">{formatCurrency(item.building_value)}</span>
                     </div>
-                  </td>
-                </tr>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Land Value:</span>
+                      <span className="font-medium">{formatCurrency(item.land_value)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Annual Depreciation:</span>
+                      <span className="font-medium">{formatCurrency(item.annual_depreciation)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Accumulated:</span>
+                      <span className="font-medium">{formatCurrency(item.accumulated_depreciation)}</span>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {/* Empty State */}
-      {depreciation.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <Calculator className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No depreciation records</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Get started by adding your first depreciation record.
-          </p>
-          <div className="mt-6">
-            <button
-              onClick={() => setShowModal(true)}
-              className="btn-primary"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Depreciation
-            </button>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Tax Benefits</h2>
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-medium text-blue-900 mb-2">Section 179 Deduction</h3>
+                <p className="text-sm text-blue-700">
+                  Qualifying properties may be eligible for immediate expensing under Section 179.
+                </p>
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="font-medium text-green-900 mb-2">Bonus Depreciation</h3>
+                <p className="text-sm text-green-700">
+                  Additional first-year depreciation may be available for qualifying property.
+                </p>
+              </div>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h3 className="font-medium text-purple-900 mb-2">Regular Depreciation</h3>
+                <p className="text-sm text-purple-700">
+                  Standard depreciation over 27.5 years for residential rental property.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Depreciation Modal */}
-      {showModal && (
-        <DepreciationModal
-          depreciation={editingDepreciation}
-          properties={properties}
-          onSave={editingDepreciation ? handleUpdateDepreciation : handleCreateDepreciation}
-          onClose={() => {
-            setShowModal(false)
-            setEditingDepreciation(null)
-          }}
-        />
+      ) : (
+        <div className="text-center py-12">
+          <CalculatorIcon className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Depreciation Data</h3>
+          <p className="text-gray-600 mb-6">Add properties to your portfolio to start tracking depreciation for tax purposes.</p>
+          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto">
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Add Your First Property
+          </button>
+        </div>
       )}
     </div>
   )
