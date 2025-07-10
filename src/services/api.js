@@ -175,7 +175,7 @@ class ApiService {
   }
 
   // Dashboard API
-  async getDashboardOverview() {
+  async getDashboardData() {
     return this.request('/dashboard/overview')
   }
 

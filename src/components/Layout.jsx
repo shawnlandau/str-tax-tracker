@@ -3,9 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { 
   Home, 
   Building2, 
-  Receipt, 
   Calculator,
-  Calendar,
   FileText,
   Menu,
   X
@@ -18,8 +16,6 @@ const Layout = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Properties', href: '/properties', icon: Building2 },
-    { name: 'Bookings', href: '/bookings', icon: Calendar },
-    { name: 'Transactions', href: '/transactions', icon: Receipt },
     { name: 'Depreciation', href: '/depreciation', icon: Calculator },
     { name: 'Tax Forms', href: '/tax-forms', icon: FileText },
   ]
