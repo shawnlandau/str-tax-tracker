@@ -19,15 +19,28 @@ const Properties = () => {
   const [showAddIncome, setShowAddIncome] = useState(false)
   const [showAddExpense, setShowAddExpense] = useState(false)
   const [showAddProperty, setShowAddProperty] = useState(false)
+  const [showAddBooking, setShowAddBooking] = useState(false)
+  const [selectedPropertyId, setSelectedPropertyId] = useState(null)
+  const [newBooking, setNewBooking] = useState({
+    check_in: '',
+    check_out: '',
+    amount: '',
+    guest_name: '',
+    notes: ''
+  })
   const [newProperty, setNewProperty] = useState({
     address: '',
     property_type: 'Single Family',
     purchase_price: '',
     current_value: '',
-    monthly_rent: '',
-    status: 'Vacant',
-    tenant: '',
-    income: [],
+    mortgage: '',
+    property_tax: '',
+    insurance: '',
+    hoa: '',
+    utilities: '',
+    other_fixed_costs: '',
+    status: 'Active',
+    bookings: [],
     expenses: []
   })
 
@@ -66,27 +79,69 @@ const Properties = () => {
   }
 
   const calculatePropertyTotals = (property) => {
-    const income = property.income || []
+    const bookings = property.bookings || []
     const expenses = property.expenses || []
     
-    const totalIncome = income.reduce((sum, item) => sum + item.amount, 0)
-    const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0)
+    const totalIncome = bookings.reduce((sum, booking) => sum + booking.amount, 0)
+    const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0)
     const netIncome = totalIncome - totalExpenses
     
     return { totalIncome, totalExpenses, netIncome }
+  }
+
+  const handleAddBooking = (e) => {
+    e.preventDefault()
+    
+    try {
+      const bookingToAdd = {
+        ...newBooking,
+        id: Date.now().toString(),
+        amount: parseFloat(newBooking.amount) || 0,
+        date: new Date().toISOString()
+      }
+      
+      // Add booking to the selected property
+      setProperties(properties.map(property => {
+        if (property.id === selectedPropertyId) {
+          return {
+            ...property,
+            bookings: [...(property.bookings || []), bookingToAdd]
+          }
+        }
+        return property
+      }))
+      
+      // Reset form
+      setNewBooking({
+        check_in: '',
+        check_out: '',
+        amount: '',
+        guest_name: '',
+        notes: ''
+      })
+      
+      setShowAddBooking(false)
+      setSelectedPropertyId(null)
+    } catch (err) {
+      console.error('Failed to add booking:', err)
+    }
   }
 
   const handleAddProperty = async (e) => {
     e.preventDefault()
     
     try {
-      // In a real app, this would call the API
       const propertyToAdd = {
         ...newProperty,
-        id: Date.now().toString(), // Generate a temporary ID
+        id: Date.now().toString(),
         purchase_price: parseFloat(newProperty.purchase_price) || 0,
         current_value: parseFloat(newProperty.current_value) || 0,
-        monthly_rent: parseFloat(newProperty.monthly_rent) || 0
+        mortgage: parseFloat(newProperty.mortgage) || 0,
+        property_tax: parseFloat(newProperty.property_tax) || 0,
+        insurance: parseFloat(newProperty.insurance) || 0,
+        hoa: parseFloat(newProperty.hoa) || 0,
+        utilities: parseFloat(newProperty.utilities) || 0,
+        other_fixed_costs: parseFloat(newProperty.other_fixed_costs) || 0
       }
       
       // Add to local state
@@ -98,10 +153,14 @@ const Properties = () => {
         property_type: 'Single Family',
         purchase_price: '',
         current_value: '',
-        monthly_rent: '',
-        status: 'Vacant',
-        tenant: '',
-        income: [],
+        mortgage: '',
+        property_tax: '',
+        insurance: '',
+        hoa: '',
+        utilities: '',
+        other_fixed_costs: '',
+        status: 'Active',
+        bookings: [],
         expenses: []
       })
       
@@ -210,7 +269,7 @@ const Properties = () => {
                 <div className="border-b border-gray-200">
                   <nav className="flex space-x-8 px-6">
                     <button className="py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium">
-                      Income
+                      Bookings
                     </button>
                     <button className="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
                       Expenses
@@ -221,43 +280,54 @@ const Properties = () => {
                   </nav>
                 </div>
 
-                {/* Income Section */}
+                {/* Bookings Section */}
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-lg font-semibold text-gray-900">Income</h4>
+                    <h4 className="text-lg font-semibold text-gray-900">Bookings</h4>
                     <button 
-                      onClick={() => setShowAddIncome(true)}
+                      onClick={() => {
+                        setSelectedPropertyId(property.id)
+                        setShowAddBooking(true)
+                      }}
                       className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors flex items-center text-sm"
                     >
                       <PlusIcon className="h-4 w-4 mr-1" />
-                      Add Income
+                      Add Booking
                     </button>
                   </div>
                   
-                  {property.income && property.income.length > 0 ? (
+                  {property.bookings && property.bookings.length > 0 ? (
                     <div className="space-y-3">
-                      {property.income.map((item, index) => (
+                      {property.bookings.map((booking, index) => (
                         <div key={index} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
                           <div className="flex items-center">
                             <CalendarIcon className="h-5 w-5 text-green-600 mr-3" />
                             <div>
-                              <p className="font-medium">{item.description}</p>
-                              <p className="text-sm text-gray-600">{formatDate(item.date)}</p>
+                              <p className="font-medium">{booking.guest_name || 'Guest'}</p>
+                              <p className="text-sm text-gray-600">
+                                {formatDate(booking.check_in)} - {formatDate(booking.check_out)}
+                              </p>
+                              {booking.notes && (
+                                <p className="text-xs text-gray-500">{booking.notes}</p>
+                              )}
                             </div>
                           </div>
-                          <span className="font-semibold text-green-600">{formatCurrency(item.amount)}</span>
+                          <span className="font-semibold text-green-600">{formatCurrency(booking.amount)}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <CurrencyDollarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">No income recorded yet</p>
+                      <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">No bookings recorded yet</p>
                       <button 
-                        onClick={() => setShowAddIncome(true)}
+                        onClick={() => {
+                          setSelectedPropertyId(property.id)
+                          setShowAddBooking(true)
+                        }}
                         className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
                       >
-                        Add your first income entry
+                        Add your first booking
                       </button>
                     </div>
                   )}
@@ -362,36 +432,63 @@ const Properties = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Rent</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mortgage (monthly)</label>
                 <input 
                   type="number" 
-                  value={newProperty.monthly_rent}
-                  onChange={(e) => setNewProperty({...newProperty, monthly_rent: e.target.value})}
+                  value={newProperty.mortgage}
+                  onChange={(e) => setNewProperty({...newProperty, mortgage: e.target.value})}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   placeholder="0.00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select 
-                  value={newProperty.status}
-                  onChange={(e) => setNewProperty({...newProperty, status: e.target.value})}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Property Tax (monthly)</label>
+                <input 
+                  type="number" 
+                  value={newProperty.property_tax}
+                  onChange={(e) => setNewProperty({...newProperty, property_tax: e.target.value})}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                >
-                  <option>Vacant</option>
-                  <option>Rented</option>
-                  <option>Under Renovation</option>
-                  <option>For Sale</option>
-                </select>
+                  placeholder="0.00"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tenant (if rented)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Insurance (monthly)</label>
                 <input 
-                  type="text" 
-                  value={newProperty.tenant}
-                  onChange={(e) => setNewProperty({...newProperty, tenant: e.target.value})}
+                  type="number" 
+                  value={newProperty.insurance}
+                  onChange={(e) => setNewProperty({...newProperty, insurance: e.target.value})}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="Tenant name"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">HOA Fees (monthly)</label>
+                <input 
+                  type="number" 
+                  value={newProperty.hoa}
+                  onChange={(e) => setNewProperty({...newProperty, hoa: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Utilities (monthly)</label>
+                <input 
+                  type="number" 
+                  value={newProperty.utilities}
+                  onChange={(e) => setNewProperty({...newProperty, utilities: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Other Fixed Costs (monthly)</label>
+                <input 
+                  type="number" 
+                  value={newProperty.other_fixed_costs}
+                  onChange={(e) => setNewProperty({...newProperty, other_fixed_costs: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="0.00"
                 />
               </div>
               <div className="flex space-x-3 pt-4">
@@ -414,39 +511,81 @@ const Properties = () => {
         </div>
       )}
 
-      {/* Add Income Modal */}
-      {showAddIncome && (
+      {/* Add Booking Modal */}
+      {showAddBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Add Income</h3>
-            <form className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Add Booking</h3>
+              <button 
+                onClick={() => {
+                  setShowAddBooking(false)
+                  setSelectedPropertyId(null)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleAddBooking} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Guest Name</label>
                 <input 
                   type="text" 
+                  value={newBooking.guest_name}
+                  onChange={(e) => setNewBooking({...newBooking, guest_name: e.target.value})}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="e.g., Monthly rent payment"
+                  placeholder="Guest name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
+                <input 
+                  type="date" 
+                  required
+                  value={newBooking.check_in}
+                  onChange={(e) => setNewBooking({...newBooking, check_in: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
+                <input 
+                  type="date" 
+                  required
+                  value={newBooking.check_out}
+                  onChange={(e) => setNewBooking({...newBooking, check_out: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
                 <input 
                   type="number" 
+                  required
+                  value={newBooking.amount}
+                  onChange={(e) => setNewBooking({...newBooking, amount: e.target.value})}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   placeholder="0.00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                <input 
-                  type="date" 
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea 
+                  value={newBooking.notes}
+                  onChange={(e) => setNewBooking({...newBooking, notes: e.target.value})}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Optional notes about the booking"
+                  rows="3"
                 />
               </div>
               <div className="flex space-x-3 pt-4">
                 <button 
                   type="button"
-                  onClick={() => setShowAddIncome(false)}
+                  onClick={() => {
+                    setShowAddBooking(false)
+                    setSelectedPropertyId(null)
+                  }}
                   className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
                 >
                   Cancel
@@ -455,7 +594,7 @@ const Properties = () => {
                   type="submit"
                   className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  Add Income
+                  Add Booking
                 </button>
               </div>
             </form>
