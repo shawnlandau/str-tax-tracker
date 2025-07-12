@@ -7,7 +7,8 @@ import {
   CurrencyDollarIcon,
   CalendarIcon,
   WrenchScrewdriverIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline'
 
 const Properties = () => {
@@ -17,6 +18,18 @@ const Properties = () => {
   const [selectedProperty, setSelectedProperty] = useState(null)
   const [showAddIncome, setShowAddIncome] = useState(false)
   const [showAddExpense, setShowAddExpense] = useState(false)
+  const [showAddProperty, setShowAddProperty] = useState(false)
+  const [newProperty, setNewProperty] = useState({
+    address: '',
+    property_type: 'Single Family',
+    purchase_price: '',
+    current_value: '',
+    monthly_rent: '',
+    status: 'Vacant',
+    tenant: '',
+    income: [],
+    expenses: []
+  })
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -63,6 +76,41 @@ const Properties = () => {
     return { totalIncome, totalExpenses, netIncome }
   }
 
+  const handleAddProperty = async (e) => {
+    e.preventDefault()
+    
+    try {
+      // In a real app, this would call the API
+      const propertyToAdd = {
+        ...newProperty,
+        id: Date.now().toString(), // Generate a temporary ID
+        purchase_price: parseFloat(newProperty.purchase_price) || 0,
+        current_value: parseFloat(newProperty.current_value) || 0,
+        monthly_rent: parseFloat(newProperty.monthly_rent) || 0
+      }
+      
+      // Add to local state
+      setProperties([...properties, propertyToAdd])
+      
+      // Reset form
+      setNewProperty({
+        address: '',
+        property_type: 'Single Family',
+        purchase_price: '',
+        current_value: '',
+        monthly_rent: '',
+        status: 'Vacant',
+        tenant: '',
+        income: [],
+        expenses: []
+      })
+      
+      setShowAddProperty(false)
+    } catch (err) {
+      console.error('Failed to add property:', err)
+    }
+  }
+
   const handleAddIncome = (propertyId, incomeData) => {
     // In a real app, this would call the API
     console.log('Adding income to property:', propertyId, incomeData)
@@ -102,7 +150,10 @@ const Properties = () => {
           <h1 className="text-3xl font-bold text-gray-900">Properties</h1>
           <p className="text-gray-600">Manage your real estate portfolio with integrated income & expenses</p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+        <button 
+          onClick={() => setShowAddProperty(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+        >
           <PlusIcon className="h-5 w-5 mr-2" />
           Add Property
         </button>
@@ -240,10 +291,126 @@ const Properties = () => {
           <p className="text-gray-600 mb-6">
             Add your first property to start tracking income, expenses, and depreciation for tax purposes.
           </p>
-          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto">
+          <button 
+            onClick={() => setShowAddProperty(true)}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto"
+          >
             <PlusIcon className="h-5 w-5 mr-2" />
             Add Your First Property
           </button>
+        </div>
+      )}
+
+      {/* Add Property Modal */}
+      {showAddProperty && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Add New Property</h3>
+              <button 
+                onClick={() => setShowAddProperty(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleAddProperty} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Property Address</label>
+                <input 
+                  type="text" 
+                  required
+                  value={newProperty.address}
+                  onChange={(e) => setNewProperty({...newProperty, address: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="123 Main St, City, State"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
+                <select 
+                  value={newProperty.property_type}
+                  onChange={(e) => setNewProperty({...newProperty, property_type: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                >
+                  <option>Single Family</option>
+                  <option>Multi-Family</option>
+                  <option>Condo</option>
+                  <option>Townhouse</option>
+                  <option>Commercial</option>
+                  <option>Land</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price</label>
+                <input 
+                  type="number" 
+                  value={newProperty.purchase_price}
+                  onChange={(e) => setNewProperty({...newProperty, purchase_price: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
+                <input 
+                  type="number" 
+                  value={newProperty.current_value}
+                  onChange={(e) => setNewProperty({...newProperty, current_value: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Rent</label>
+                <input 
+                  type="number" 
+                  value={newProperty.monthly_rent}
+                  onChange={(e) => setNewProperty({...newProperty, monthly_rent: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select 
+                  value={newProperty.status}
+                  onChange={(e) => setNewProperty({...newProperty, status: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                >
+                  <option>Vacant</option>
+                  <option>Rented</option>
+                  <option>Under Renovation</option>
+                  <option>For Sale</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tenant (if rented)</label>
+                <input 
+                  type="text" 
+                  value={newProperty.tenant}
+                  onChange={(e) => setNewProperty({...newProperty, tenant: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Tenant name"
+                />
+              </div>
+              <div className="flex space-x-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddProperty(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Add Property
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
