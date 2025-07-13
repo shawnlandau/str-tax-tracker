@@ -20,12 +20,22 @@ const Properties = () => {
   const [showAddExpense, setShowAddExpense] = useState(false)
   const [showAddProperty, setShowAddProperty] = useState(false)
   const [showAddBooking, setShowAddBooking] = useState(false)
+  const [showPropertyDetails, setShowPropertyDetails] = useState(false)
   const [selectedPropertyId, setSelectedPropertyId] = useState(null)
   const [newBooking, setNewBooking] = useState({
     check_in: '',
     check_out: '',
     amount: '',
     guest_name: '',
+    notes: ''
+  })
+  const [propertyDetails, setPropertyDetails] = useState({
+    warranties: [],
+    maintenance_schedule: [],
+    filters: [],
+    appliances: [],
+    utilities_info: [],
+    emergency_contacts: [],
     notes: ''
   })
   const [newProperty, setNewProperty] = useState({
@@ -182,6 +192,114 @@ const Properties = () => {
     setShowAddExpense(false)
   }
 
+  const handleAddPropertyDetails = (e) => {
+    e.preventDefault()
+    
+    try {
+      // Update the selected property with details
+      setProperties(properties.map(property => {
+        if (property.id === selectedPropertyId) {
+          return {
+            ...property,
+            details: propertyDetails
+          }
+        }
+        return property
+      }))
+      
+      setShowPropertyDetails(false)
+      setSelectedPropertyId(null)
+    } catch (err) {
+      console.error('Failed to update property details:', err)
+    }
+  }
+
+  const addWarranty = () => {
+    setPropertyDetails({
+      ...propertyDetails,
+      warranties: [...propertyDetails.warranties, {
+        id: Date.now().toString(),
+        item: '',
+        company: '',
+        start_date: '',
+        end_date: '',
+        contact: '',
+        notes: ''
+      }]
+    })
+  }
+
+  const addMaintenanceItem = () => {
+    setPropertyDetails({
+      ...propertyDetails,
+      maintenance_schedule: [...propertyDetails.maintenance_schedule, {
+        id: Date.now().toString(),
+        task: '',
+        frequency: 'Monthly',
+        last_done: '',
+        next_due: '',
+        notes: ''
+      }]
+    })
+  }
+
+  const addFilter = () => {
+    setPropertyDetails({
+      ...propertyDetails,
+      filters: [...propertyDetails.filters, {
+        id: Date.now().toString(),
+        type: '',
+        location: '',
+        last_changed: '',
+        next_change: '',
+        notes: ''
+      }]
+    })
+  }
+
+  const addAppliance = () => {
+    setPropertyDetails({
+      ...propertyDetails,
+      appliances: [...propertyDetails.appliances, {
+        id: Date.now().toString(),
+        name: '',
+        model: '',
+        serial_number: '',
+        purchase_date: '',
+        warranty_info: '',
+        notes: ''
+      }]
+    })
+  }
+
+  const addUtility = () => {
+    setPropertyDetails({
+      ...propertyDetails,
+      utilities_info: [...propertyDetails.utilities_info, {
+        id: Date.now().toString(),
+        utility: '',
+        account_number: '',
+        provider: '',
+        contact: '',
+        notes: ''
+      }]
+    })
+  }
+
+  const addEmergencyContact = () => {
+    setPropertyDetails({
+      ...propertyDetails,
+      emergency_contacts: [...propertyDetails.emergency_contacts, {
+        id: Date.now().toString(),
+        name: '',
+        type: 'Plumber',
+        phone: '',
+        email: '',
+        notes: ''
+      }]
+    })
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -275,6 +393,9 @@ const Properties = () => {
                       Expenses
                     </button>
                     <button className="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                      Property Details
+                    </button>
+                    <button className="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
                       Depreciation
                     </button>
                   </nav>
@@ -328,6 +449,76 @@ const Properties = () => {
                         className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
                       >
                         Add your first booking
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Property Details Section */}
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-lg font-semibold text-gray-900">Property Details</h4>
+                    <button 
+                      onClick={() => {
+                        setSelectedPropertyId(property.id)
+                        setPropertyDetails(property.details || {
+                          warranties: [],
+                          maintenance_schedule: [],
+                          filters: [],
+                          appliances: [],
+                          utilities_info: [],
+                          emergency_contacts: [],
+                          notes: ''
+                        })
+                        setShowPropertyDetails(true)
+                      }}
+                      className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition-colors flex items-center text-sm"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-1" />
+                      Manage Details
+                    </button>
+                  </div>
+                  
+                  {property.details ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h5 className="font-medium text-gray-900 mb-2">Warranties</h5>
+                        <p className="text-sm text-gray-600">{property.details.warranties?.length || 0} items</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h5 className="font-medium text-gray-900 mb-2">Maintenance Schedule</h5>
+                        <p className="text-sm text-gray-600">{property.details.maintenance_schedule?.length || 0} tasks</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h5 className="font-medium text-gray-900 mb-2">Filters</h5>
+                        <p className="text-sm text-gray-600">{property.details.filters?.length || 0} filters</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h5 className="font-medium text-gray-900 mb-2">Appliances</h5>
+                        <p className="text-sm text-gray-600">{property.details.appliances?.length || 0} appliances</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <BuildingOfficeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">No property details added yet</p>
+                      <button 
+                        onClick={() => {
+                          setSelectedPropertyId(property.id)
+                          setPropertyDetails({
+                            warranties: [],
+                            maintenance_schedule: [],
+                            filters: [],
+                            appliances: [],
+                            utilities_info: [],
+                            emergency_contacts: [],
+                            notes: ''
+                          })
+                          setShowPropertyDetails(true)
+                        }}
+                        className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Add property details
                       </button>
                     </div>
                   )}
@@ -655,6 +846,475 @@ const Properties = () => {
                   className="flex-1 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
                 >
                   Add Expense
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Property Details Modal */}
+      {showPropertyDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Property Details</h3>
+              <button 
+                onClick={() => {
+                  setShowPropertyDetails(false)
+                  setSelectedPropertyId(null)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddPropertyDetails} className="space-y-6">
+              {/* Warranties Section */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-md font-semibold text-gray-900">Warranties</h4>
+                  <button 
+                    type="button"
+                    onClick={addWarranty}
+                    className="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700"
+                  >
+                    Add Warranty
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {propertyDetails.warranties.map((warranty, index) => (
+                    <div key={warranty.id} className="border border-gray-200 rounded-lg p-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input 
+                          type="text"
+                          placeholder="Item (e.g., HVAC, Water Heater)"
+                          value={warranty.item}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.warranties]
+                            updated[index].item = e.target.value
+                            setPropertyDetails({...propertyDetails, warranties: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Company"
+                          value={warranty.company}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.warranties]
+                            updated[index].company = e.target.value
+                            setPropertyDetails({...propertyDetails, warranties: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="date"
+                          placeholder="Start Date"
+                          value={warranty.start_date}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.warranties]
+                            updated[index].start_date = e.target.value
+                            setPropertyDetails({...propertyDetails, warranties: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="date"
+                          placeholder="End Date"
+                          value={warranty.end_date}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.warranties]
+                            updated[index].end_date = e.target.value
+                            setPropertyDetails({...propertyDetails, warranties: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Contact Info"
+                          value={warranty.contact}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.warranties]
+                            updated[index].contact = e.target.value
+                            setPropertyDetails({...propertyDetails, warranties: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Notes"
+                          value={warranty.notes}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.warranties]
+                            updated[index].notes = e.target.value
+                            setPropertyDetails({...propertyDetails, warranties: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Maintenance Schedule Section */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-md font-semibold text-gray-900">Maintenance Schedule</h4>
+                  <button 
+                    type="button"
+                    onClick={addMaintenanceItem}
+                    className="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700"
+                  >
+                    Add Task
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {propertyDetails.maintenance_schedule.map((task, index) => (
+                    <div key={task.id} className="border border-gray-200 rounded-lg p-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input 
+                          type="text"
+                          placeholder="Task (e.g., HVAC Service, Gutter Cleaning)"
+                          value={task.task}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.maintenance_schedule]
+                            updated[index].task = e.target.value
+                            setPropertyDetails({...propertyDetails, maintenance_schedule: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <select 
+                          value={task.frequency}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.maintenance_schedule]
+                            updated[index].frequency = e.target.value
+                            setPropertyDetails({...propertyDetails, maintenance_schedule: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        >
+                          <option>Monthly</option>
+                          <option>Quarterly</option>
+                          <option>Semi-annually</option>
+                          <option>Annually</option>
+                          <option>As needed</option>
+                        </select>
+                        <input 
+                          type="date"
+                          placeholder="Last Done"
+                          value={task.last_done}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.maintenance_schedule]
+                            updated[index].last_done = e.target.value
+                            setPropertyDetails({...propertyDetails, maintenance_schedule: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="date"
+                          placeholder="Next Due"
+                          value={task.next_due}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.maintenance_schedule]
+                            updated[index].next_due = e.target.value
+                            setPropertyDetails({...propertyDetails, maintenance_schedule: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Notes"
+                          value={task.notes}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.maintenance_schedule]
+                            updated[index].notes = e.target.value
+                            setPropertyDetails({...propertyDetails, maintenance_schedule: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm col-span-2"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Filters Section */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-md font-semibold text-gray-900">Filters</h4>
+                  <button 
+                    type="button"
+                    onClick={addFilter}
+                    className="bg-purple-600 text-white px-2 py-1 rounded text-sm hover:bg-purple-700"
+                  >
+                    Add Filter
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {propertyDetails.filters.map((filter, index) => (
+                    <div key={filter.id} className="border border-gray-200 rounded-lg p-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input 
+                          type="text"
+                          placeholder="Filter Type (e.g., HVAC, Water)"
+                          value={filter.type}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.filters]
+                            updated[index].type = e.target.value
+                            setPropertyDetails({...propertyDetails, filters: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Location"
+                          value={filter.location}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.filters]
+                            updated[index].location = e.target.value
+                            setPropertyDetails({...propertyDetails, filters: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="date"
+                          placeholder="Last Changed"
+                          value={filter.last_changed}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.filters]
+                            updated[index].last_changed = e.target.value
+                            setPropertyDetails({...propertyDetails, filters: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="date"
+                          placeholder="Next Change"
+                          value={filter.next_change}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.filters]
+                            updated[index].next_change = e.target.value
+                            setPropertyDetails({...propertyDetails, filters: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Notes"
+                          value={filter.notes}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.filters]
+                            updated[index].notes = e.target.value
+                            setPropertyDetails({...propertyDetails, filters: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm col-span-2"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Appliances Section */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-md font-semibold text-gray-900">Appliances</h4>
+                  <button 
+                    type="button"
+                    onClick={addAppliance}
+                    className="bg-orange-600 text-white px-2 py-1 rounded text-sm hover:bg-orange-700"
+                  >
+                    Add Appliance
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {propertyDetails.appliances.map((appliance, index) => (
+                    <div key={appliance.id} className="border border-gray-200 rounded-lg p-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input 
+                          type="text"
+                          placeholder="Appliance Name"
+                          value={appliance.name}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.appliances]
+                            updated[index].name = e.target.value
+                            setPropertyDetails({...propertyDetails, appliances: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Model"
+                          value={appliance.model}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.appliances]
+                            updated[index].model = e.target.value
+                            setPropertyDetails({...propertyDetails, appliances: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Serial Number"
+                          value={appliance.serial_number}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.appliances]
+                            updated[index].serial_number = e.target.value
+                            setPropertyDetails({...propertyDetails, appliances: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="date"
+                          placeholder="Purchase Date"
+                          value={appliance.purchase_date}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.appliances]
+                            updated[index].purchase_date = e.target.value
+                            setPropertyDetails({...propertyDetails, appliances: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Warranty Info"
+                          value={appliance.warranty_info}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.appliances]
+                            updated[index].warranty_info = e.target.value
+                            setPropertyDetails({...propertyDetails, appliances: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Notes"
+                          value={appliance.notes}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.appliances]
+                            updated[index].notes = e.target.value
+                            setPropertyDetails({...propertyDetails, appliances: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Emergency Contacts Section */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-md font-semibold text-gray-900">Emergency Contacts</h4>
+                  <button 
+                    type="button"
+                    onClick={addEmergencyContact}
+                    className="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
+                  >
+                    Add Contact
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {propertyDetails.emergency_contacts.map((contact, index) => (
+                    <div key={contact.id} className="border border-gray-200 rounded-lg p-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input 
+                          type="text"
+                          placeholder="Name"
+                          value={contact.name}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.emergency_contacts]
+                            updated[index].name = e.target.value
+                            setPropertyDetails({...propertyDetails, emergency_contacts: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <select 
+                          value={contact.type}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.emergency_contacts]
+                            updated[index].type = e.target.value
+                            setPropertyDetails({...propertyDetails, emergency_contacts: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        >
+                          <option>Plumber</option>
+                          <option>Electrician</option>
+                          <option>HVAC</option>
+                          <option>General Contractor</option>
+                          <option>Property Manager</option>
+                          <option>Other</option>
+                        </select>
+                        <input 
+                          type="tel"
+                          placeholder="Phone"
+                          value={contact.phone}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.emergency_contacts]
+                            updated[index].phone = e.target.value
+                            setPropertyDetails({...propertyDetails, emergency_contacts: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="email"
+                          placeholder="Email"
+                          value={contact.email}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.emergency_contacts]
+                            updated[index].email = e.target.value
+                            setPropertyDetails({...propertyDetails, emergency_contacts: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Notes"
+                          value={contact.notes}
+                          onChange={(e) => {
+                            const updated = [...propertyDetails.emergency_contacts]
+                            updated[index].notes = e.target.value
+                            setPropertyDetails({...propertyDetails, emergency_contacts: updated})
+                          }}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm col-span-2"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* General Notes */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-900 mb-3">General Notes</h4>
+                <textarea 
+                  value={propertyDetails.notes}
+                  onChange={(e) => setPropertyDetails({...propertyDetails, notes: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Any additional notes about the property..."
+                  rows="4"
+                />
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setShowPropertyDetails(false)
+                    setSelectedPropertyId(null)
+                  }}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Save Details
                 </button>
               </div>
             </form>
