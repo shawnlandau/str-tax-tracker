@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { apiService } from '../services/api'
-import { 
-  HomeIcon, 
-  CurrencyDollarIcon, 
-  BuildingOfficeIcon, 
-  ChartBarIcon,
-  DocumentTextIcon,
-  CalculatorIcon,
-  ArrowTrendingUpIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline'
+import PortfolioOverview from '../components/dashboard/PortfolioOverview'
+import DepreciationChart from '../components/dashboard/DepreciationChart'
+import {
+  Plus,
+  Building2,
+  TrendingUp,
+  Calculator,
+  FileText,
+  Clock,
+  DollarSign,
+  Calendar,
+  AlertTriangle
+} from 'lucide-react'
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null)
@@ -50,7 +53,7 @@ const Dashboard = () => {
       value: dashboardData?.totalProperties || 0,
       change: '+0',
       changeType: 'positive',
-      icon: BuildingOfficeIcon,
+      icon: Building2,
       color: 'bg-blue-500',
       href: '/properties'
     },
@@ -59,7 +62,7 @@ const Dashboard = () => {
       value: formatCurrency(dashboardData?.totalRevenue || 0),
       change: '+0%',
       changeType: 'positive',
-      icon: CurrencyDollarIcon,
+      icon: DollarSign,
       color: 'bg-green-500',
       href: '/properties'
     },
@@ -68,7 +71,7 @@ const Dashboard = () => {
       value: formatCurrency(dashboardData?.totalExpenses || 0),
       change: '+0%',
       changeType: 'negative',
-      icon: ChartBarIcon,
+      icon: Clock,
       color: 'bg-orange-500',
       href: '/properties'
     },
@@ -77,7 +80,7 @@ const Dashboard = () => {
       value: formatCurrency(dashboardData?.netIncome || 0),
       change: '+0%',
       changeType: dashboardData?.netIncome >= 0 ? 'positive' : 'negative',
-      icon: ArrowTrendingUpIcon,
+      icon: TrendingUp,
       color: 'bg-emerald-500',
       href: '/properties'
     },
@@ -86,7 +89,7 @@ const Dashboard = () => {
       value: dashboardData?.totalBookings || 0,
       change: '+0%',
       changeType: 'positive',
-      icon: CurrencyDollarIcon,
+      icon: DollarSign,
       color: 'bg-purple-500',
       href: '/properties'
     },
@@ -95,7 +98,7 @@ const Dashboard = () => {
       value: formatCurrency(dashboardData?.totalDepreciation || 0),
       change: '+0%',
       changeType: 'positive',
-      icon: CalculatorIcon,
+      icon: Calculator,
       color: 'bg-indigo-500',
       href: '/depreciation'
     },
@@ -104,7 +107,7 @@ const Dashboard = () => {
       value: 'Ready',
       change: '100% Compliance',
       changeType: 'positive',
-      icon: DocumentTextIcon,
+      icon: FileText,
       color: 'bg-teal-500',
       href: '/tax-forms'
     }
@@ -122,7 +125,7 @@ const Dashboard = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Dashboard</h2>
           <p className="text-gray-600">{error}</p>
         </div>
@@ -174,7 +177,7 @@ const Dashboard = () => {
             {dashboardData.properties.slice(0, 5).map((property, index) => (
               <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center">
-                  <BuildingOfficeIcon className="h-5 w-5 text-blue-600 mr-3" />
+                  <Building2 className="h-5 w-5 text-blue-600 mr-3" />
                   <div>
                     <p className="font-medium text-gray-900">{property.address}</p>
                     <p className="text-sm text-gray-600">{property.property_type}</p>
@@ -189,7 +192,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <BuildingOfficeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">No properties added yet</p>
             <button 
               onClick={() => navigate('/properties')}

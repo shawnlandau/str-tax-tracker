@@ -1,13 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { apiService } from '../services/api'
-import { 
-  ArrowDownTrayIcon,
-  ArrowUpTrayIcon,
-  TrashIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  InformationCircleIcon
-} from '@heroicons/react/24/outline'
+import {
+  Download,
+  Upload,
+  Trash2,
+  Database,
+  AlertTriangle,
+  CheckCircle,
+  X,
+  FileText,
+  HardDrive
+} from 'lucide-react'
 
 const DataManager = () => {
   const [loading, setLoading] = useState(false)
@@ -111,9 +114,9 @@ const DataManager = () => {
             : 'bg-red-50 text-red-800 border border-red-200'
         }`}>
           {message.type === 'success' ? (
-            <CheckCircleIcon className="h-5 w-5 mr-2" />
+            <CheckCircle className="h-5 w-5 mr-2" />
           ) : (
-            <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+            <AlertTriangle className="h-5 w-5 mr-2" />
           )}
           {message.text}
         </div>
@@ -123,7 +126,7 @@ const DataManager = () => {
       {storageInfo && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="flex items-center mb-2">
-            <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
+            <Database className="h-5 w-5 text-blue-600 mr-2" />
             <h3 className="font-semibold text-blue-900">Storage Information</h3>
           </div>
           <div className="text-sm text-blue-800">
@@ -154,7 +157,7 @@ const DataManager = () => {
         {/* Export Data */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center mb-4">
-            <ArrowDownTrayIcon className="h-6 w-6 text-green-600 mr-3" />
+            <Download className="h-6 w-6 text-green-600 mr-3" />
             <h3 className="text-lg font-semibold text-gray-900">Export Data</h3>
           </div>
           <p className="text-gray-600 mb-4">
@@ -169,7 +172,7 @@ const DataManager = () => {
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
             ) : (
               <>
-                <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                <Download className="h-5 w-5 mr-2" />
                 Export All Data
               </>
             )}
@@ -179,7 +182,7 @@ const DataManager = () => {
         {/* Import Data */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center mb-4">
-            <ArrowUpTrayIcon className="h-6 w-6 text-blue-600 mr-3" />
+            <Upload className="h-6 w-6 text-blue-600 mr-3" />
             <h3 className="text-lg font-semibold text-gray-900">Import Data</h3>
           </div>
           <p className="text-gray-600 mb-4">
@@ -197,7 +200,7 @@ const DataManager = () => {
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
             ) : (
               <>
-                <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+                <Upload className="h-5 w-5 mr-2" />
                 Import Data
               </>
             )}
@@ -207,7 +210,7 @@ const DataManager = () => {
         {/* Clear All Data */}
         <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2">
           <div className="flex items-center mb-4">
-            <TrashIcon className="h-6 w-6 text-red-600 mr-3" />
+            <Trash2 className="h-6 w-6 text-red-600 mr-3" />
             <h3 className="text-lg font-semibold text-gray-900">Clear All Data</h3>
           </div>
           <p className="text-gray-600 mb-4">
@@ -222,7 +225,7 @@ const DataManager = () => {
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
             ) : (
               <>
-                <TrashIcon className="h-5 w-5 mr-2" />
+                <Trash2 className="h-5 w-5 mr-2" />
                 Clear All Data
               </>
             )}
@@ -233,7 +236,7 @@ const DataManager = () => {
       {/* Data Safety Notice */}
       <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <div className="flex items-start">
-          <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
           <div>
             <h4 className="font-semibold text-yellow-900 mb-2">Data Safety</h4>
             <p className="text-sm text-yellow-800">

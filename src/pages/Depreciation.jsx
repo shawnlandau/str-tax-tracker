@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { apiService } from '../services/api'
-import { 
-  PlusIcon, 
-  CalculatorIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline'
+import {
+  Calculator,
+  TrendingDown,
+  Calendar,
+  Building2,
+  AlertTriangle,
+  FileText,
+  Download
+} from 'lucide-react'
 
 const Depreciation = () => {
   const [depreciation, setDepreciation] = useState([])
@@ -49,7 +53,7 @@ const Depreciation = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Depreciation Data</h2>
           <p className="text-gray-600">{error}</p>
         </div>
@@ -65,7 +69,7 @@ const Depreciation = () => {
           <p className="text-gray-600">Track depreciation for tax purposes</p>
         </div>
         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
-          <PlusIcon className="h-5 w-5 mr-2" />
+          <FileText className="h-5 w-5 mr-2" />
           Add Property
         </button>
       </div>
@@ -127,11 +131,11 @@ const Depreciation = () => {
         </div>
       ) : (
         <div className="text-center py-12">
-          <CalculatorIcon className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+          <Calculator className="h-16 w-16 text-gray-400 mx-auto mb-6" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No Depreciation Data</h3>
           <p className="text-gray-600 mb-6">Add properties to your portfolio to start tracking depreciation for tax purposes.</p>
           <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto">
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <FileText className="h-5 w-5 mr-2" />
             Add Your First Property
           </button>
         </div>

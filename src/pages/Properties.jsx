@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { apiService } from '../services/api'
-import { 
-  PlusIcon, 
-  BuildingOfficeIcon,
-  ExclamationTriangleIcon,
-  CurrencyDollarIcon,
-  CalendarIcon,
-  WrenchScrewdriverIcon,
-  ArrowDownTrayIcon,
-  XMarkIcon
-} from '@heroicons/react/24/outline'
+import {
+  Plus,
+  Building2,
+  DollarSign,
+  Calendar,
+  FileText,
+  Download,
+  Edit,
+  Trash2,
+  Clock,
+  Calculator,
+  Wrench,
+  Shield,
+  Phone,
+  MapPin,
+  Star,
+  AlertTriangle
+} from 'lucide-react'
 
 const Properties = () => {
   const [properties, setProperties] = useState([])
@@ -22,6 +30,7 @@ const Properties = () => {
   const [showAddBooking, setShowAddBooking] = useState(false)
   const [showPropertyDetails, setShowPropertyDetails] = useState(false)
   const [selectedPropertyId, setSelectedPropertyId] = useState(null)
+  const [activeTab, setActiveTab] = useState('bookings') // Add tab state
   const [newBooking, setNewBooking] = useState({
     check_in: '',
     check_out: '',
@@ -360,7 +369,7 @@ const Properties = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Properties</h2>
           <p className="text-gray-600">{error}</p>
         </div>
@@ -380,14 +389,14 @@ const Properties = () => {
             href="/material-participation"
             className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
           >
-            <WrenchScrewdriverIcon className="h-5 w-5 mr-2" />
+            <Wrench className="h-5 w-5 mr-2" />
             Track Work Hours
           </a>
           <button 
             onClick={() => setShowAddProperty(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <Plus className="h-5 w-5 mr-2" />
             Add Property
           </button>
         </div>
@@ -443,126 +452,150 @@ const Properties = () => {
                 {/* Income & Expenses Tabs */}
                 <div className="border-b border-gray-200">
                   <nav className="flex space-x-8 px-6">
-                    <button className="py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium">
+                    <button 
+                      onClick={() => setActiveTab('bookings')}
+                      className={`py-4 px-1 border-b-2 ${activeTab === 'bookings' ? 'border-blue-500 text-blue-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'}`}
+                    >
                       Bookings
                     </button>
-                    <button className="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                    <button 
+                      onClick={() => setActiveTab('expenses')}
+                      className={`py-4 px-1 border-b-2 ${activeTab === 'expenses' ? 'border-blue-500 text-blue-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'}`}
+                    >
                       Expenses
                     </button>
-                    <button className="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                    <button 
+                      onClick={() => setActiveTab('property_details')}
+                      className={`py-4 px-1 border-b-2 ${activeTab === 'property_details' ? 'border-blue-500 text-blue-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'}`}
+                    >
                       Property Details
                     </button>
-                    <button className="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                    <button 
+                      onClick={() => setActiveTab('depreciation')}
+                      className={`py-4 px-1 border-b-2 ${activeTab === 'depreciation' ? 'border-blue-500 text-blue-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700 font-medium'}`}
+                    >
                       Depreciation
                     </button>
                   </nav>
                 </div>
 
                 {/* Bookings Section */}
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-lg font-semibold text-gray-900">Bookings</h4>
-                    <button 
-                      onClick={() => {
-                        setSelectedPropertyId(property.id)
-                        setShowAddBooking(true)
-                      }}
-                      className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors flex items-center text-sm"
-                    >
-                      <PlusIcon className="h-4 w-4 mr-1" />
-                      Add Booking
-                    </button>
-                  </div>
-                  
-                  {property.bookings && property.bookings.length > 0 ? (
-                    <div className="space-y-3">
-                      {property.bookings.map((booking, index) => (
-                        <div key={index} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
-                          <div className="flex items-center">
-                            <CalendarIcon className="h-5 w-5 text-green-600 mr-3" />
-                            <div>
-                              <p className="font-medium">{booking.guest_name || 'Guest'}</p>
-                              <p className="text-sm text-gray-600">
-                                {formatDate(booking.check_in)} - {formatDate(booking.check_out)}
-                              </p>
-                              {booking.notes && (
-                                <p className="text-xs text-gray-500">{booking.notes}</p>
-                              )}
-                            </div>
-                          </div>
-                          <span className="font-semibold text-green-600">{formatCurrency(booking.amount)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">No bookings recorded yet</p>
+                {activeTab === 'bookings' && (
+                  <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-lg font-semibold text-gray-900">Bookings</h4>
                       <button 
                         onClick={() => {
                           setSelectedPropertyId(property.id)
                           setShowAddBooking(true)
                         }}
-                        className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
+                        className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors flex items-center text-sm"
                       >
-                        Add your first booking
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Booking
                       </button>
                     </div>
-                  )}
-                </div>
-
-                {/* Property Details Section */}
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-lg font-semibold text-gray-900">Property Details</h4>
-                    <button 
-                      onClick={() => {
-                        setSelectedPropertyId(property.id)
-                        setPropertyDetails(property.details || {
-                          warranties: [],
-                          maintenance_schedule: [],
-                          filters: [],
-                          appliances: [],
-                          utilities_info: [],
-                          emergency_contacts: [],
-                          notes: ''
-                        })
-                        setShowPropertyDetails(true)
-                      }}
-                      className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition-colors flex items-center text-sm"
-                    >
-                      <PlusIcon className="h-4 w-4 mr-1" />
-                      Manage Details
-                    </button>
+                    
+                    {property.bookings && property.bookings.length > 0 ? (
+                      <div className="space-y-3">
+                        {property.bookings.map((booking, index) => (
+                          <div key={index} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                            <div className="flex items-center">
+                              <Calendar className="h-5 w-5 text-green-600 mr-3" />
+                              <div>
+                                <p className="font-medium">{booking.guest_name || 'Guest'}</p>
+                                <p className="text-sm text-gray-600">
+                                  {formatDate(booking.check_in)} - {formatDate(booking.check_out)}
+                                </p>
+                                {booking.notes && (
+                                  <p className="text-xs text-gray-500">{booking.notes}</p>
+                                )}
+                              </div>
+                            </div>
+                            <span className="font-semibold text-green-600">{formatCurrency(booking.amount)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500">No bookings recorded yet</p>
+                        <button 
+                          onClick={() => {
+                            setSelectedPropertyId(property.id)
+                            setShowAddBooking(true)
+                          }}
+                          className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          Add your first booking
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  
-                  {property.details ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h5 className="font-medium text-gray-900 mb-2">Warranties</h5>
-                        <p className="text-sm text-gray-600">{property.details.warranties?.length || 0} items</p>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h5 className="font-medium text-gray-900 mb-2">Maintenance Schedule</h5>
-                        <p className="text-sm text-gray-600">{property.details.maintenance_schedule?.length || 0} tasks</p>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h5 className="font-medium text-gray-900 mb-2">Filters</h5>
-                        <p className="text-sm text-gray-600">{property.details.filters?.length || 0} filters</p>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h5 className="font-medium text-gray-900 mb-2">Appliances</h5>
-                        <p className="text-sm text-gray-600">{property.details.appliances?.length || 0} appliances</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <BuildingOfficeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">No property details added yet</p>
+                )}
+
+                {/* Expenses Section */}
+                {activeTab === 'expenses' && (
+                  <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-lg font-semibold text-gray-900">Expenses</h4>
                       <button 
                         onClick={() => {
                           setSelectedPropertyId(property.id)
-                          setPropertyDetails({
+                          setShowAddExpense(true)
+                        }}
+                        className="bg-orange-600 text-white px-3 py-1 rounded-lg hover:bg-orange-700 transition-colors flex items-center text-sm"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Expense
+                      </button>
+                    </div>
+                    
+                    {property.expenses && property.expenses.length > 0 ? (
+                      <div className="space-y-3">
+                        {property.expenses.map((expense, index) => (
+                          <div key={index} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                            <div className="flex items-center">
+                              <Wrench className="h-5 w-5 text-red-600 mr-3" />
+                              <div>
+                                <p className="font-medium">{expense.description}</p>
+                                <p className="text-sm text-gray-600">
+                                  {formatDate(expense.date)}
+                                </p>
+                                <p className="text-sm text-gray-600">Category: {expense.category}</p>
+                                <p className="text-sm text-gray-600">Amount: {formatCurrency(expense.amount)}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500">No expenses recorded yet</p>
+                        <button 
+                          onClick={() => {
+                            setSelectedPropertyId(property.id)
+                            setShowAddExpense(true)
+                          }}
+                          className="mt-2 text-orange-600 hover:text-orange-700 font-medium"
+                        >
+                          Add your first expense
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Property Details Section */}
+                {activeTab === 'property_details' && (
+                  <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-lg font-semibold text-gray-900">Property Details</h4>
+                      <button 
+                        onClick={() => {
+                          setSelectedPropertyId(property.id)
+                          setPropertyDetails(property.details || {
                             warranties: [],
                             maintenance_schedule: [],
                             filters: [],
@@ -573,13 +606,67 @@ const Properties = () => {
                           })
                           setShowPropertyDetails(true)
                         }}
-                        className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
+                        className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition-colors flex items-center text-sm"
                       >
-                        Add property details
+                        <Plus className="h-4 w-4 mr-1" />
+                        Manage Details
                       </button>
                     </div>
-                  )}
-                </div>
+                    
+                    {property.details ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h5 className="font-medium text-gray-900 mb-2">Warranties</h5>
+                          <p className="text-sm text-gray-600">{property.details.warranties?.length || 0} items</p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h5 className="font-medium text-gray-900 mb-2">Maintenance Schedule</h5>
+                          <p className="text-sm text-gray-600">{property.details.maintenance_schedule?.length || 0} tasks</p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h5 className="font-medium text-gray-900 mb-2">Filters</h5>
+                          <p className="text-sm text-gray-600">{property.details.filters?.length || 0} filters</p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h5 className="font-medium text-gray-900 mb-2">Appliances</h5>
+                          <p className="text-sm text-gray-600">{property.details.appliances?.length || 0} appliances</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500">No property details added yet</p>
+                        <button 
+                          onClick={() => {
+                            setSelectedPropertyId(property.id)
+                            setPropertyDetails({
+                              warranties: [],
+                              maintenance_schedule: [],
+                              filters: [],
+                              appliances: [],
+                              utilities_info: [],
+                              emergency_contacts: [],
+                              notes: ''
+                            })
+                            setShowPropertyDetails(true)
+                          }}
+                          className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          Add property details
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Depreciation Section */}
+                {activeTab === 'depreciation' && (
+                  <div className="p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Depreciation</h4>
+                    <p className="text-gray-600">Depreciation tracking for tax purposes is not yet implemented in this version.</p>
+                    <p className="text-gray-600">Please add property details to enable depreciation calculations.</p>
+                  </div>
+                )}
 
                 {/* Quick Actions */}
                 <div className="p-6 bg-gray-50 border-t border-gray-200">
@@ -591,7 +678,7 @@ const Properties = () => {
                       }}
                       className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
                     >
-                      <CalendarIcon className="h-5 w-5 mr-2" />
+                      <Calendar className="h-5 w-5 mr-2" />
                       Add Booking
                     </button>
                     <button 
@@ -601,11 +688,11 @@ const Properties = () => {
                       }}
                       className="flex-1 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center"
                     >
-                      <WrenchScrewdriverIcon className="h-5 w-5 mr-2" />
+                      <Wrench className="h-5 w-5 mr-2" />
                       Add Expense
                     </button>
                     <button className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center">
-                      <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                      <Download className="h-5 w-5 mr-2" />
                       Export Data
                     </button>
                   </div>
@@ -616,7 +703,7 @@ const Properties = () => {
         </div>
       ) : (
         <div className="text-center py-12">
-          <BuildingOfficeIcon className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+          <Building2 className="h-16 w-16 text-gray-400 mx-auto mb-6" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No Properties Added</h3>
           <p className="text-gray-600 mb-6">
             Add your first property to start tracking income, expenses, and depreciation for tax purposes.
@@ -625,7 +712,7 @@ const Properties = () => {
             onClick={() => setShowAddProperty(true)}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <Plus className="h-5 w-5 mr-2" />
             Add Your First Property
           </button>
         </div>
@@ -641,7 +728,7 @@ const Properties = () => {
                 onClick={() => setShowAddProperty(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <Edit className="h-6 w-6" />
               </button>
             </div>
             <form onSubmit={handleAddProperty} className="space-y-4">
@@ -784,7 +871,7 @@ const Properties = () => {
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <Edit className="h-6 w-6" />
               </button>
             </div>
             <form onSubmit={handleAddBooking} className="space-y-4">
@@ -948,7 +1035,7 @@ const Properties = () => {
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <Edit className="h-6 w-6" />
               </button>
             </div>
             

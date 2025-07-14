@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { apiService } from '../services/api'
-import { 
-  PlusIcon, 
-  ClockIcon,
-  ExclamationTriangleIcon,
-  CalendarIcon,
-  WrenchScrewdriverIcon,
-  XMarkIcon,
-  ChartBarIcon
-} from '@heroicons/react/24/outline'
+import {
+  Plus,
+  Clock,
+  Calendar,
+  FileText,
+  Download,
+  Filter,
+  Search,
+  Edit,
+  Trash2,
+  Calculator,
+  TrendingUp,
+  AlertTriangle
+} from 'lucide-react'
 
 const MaterialParticipation = () => {
   const [participationLogs, setParticipationLogs] = useState([])
@@ -132,7 +137,7 @@ const MaterialParticipation = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Participation Logs</h2>
           <p className="text-gray-600">{error}</p>
         </div>
@@ -151,7 +156,7 @@ const MaterialParticipation = () => {
           onClick={() => setShowAddLog(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
         >
-          <PlusIcon className="h-5 w-5 mr-2" />
+          <Plus className="h-5 w-5 mr-2" />
           Add Work Log
         </button>
       </div>
@@ -160,7 +165,7 @@ const MaterialParticipation = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center">
-            <ClockIcon className="h-8 w-8 text-blue-600 mr-4" />
+            <Clock className="h-8 w-8 text-blue-600 mr-4" />
             <div>
               <p className="text-sm font-medium text-gray-600">Total Hours</p>
               <p className="text-2xl font-bold text-blue-600">{totalHours.toFixed(1)}</p>
@@ -169,7 +174,7 @@ const MaterialParticipation = () => {
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center">
-            <CalendarIcon className="h-8 w-8 text-green-600 mr-4" />
+            <Calendar className="h-8 w-8 text-green-600 mr-4" />
             <div>
               <p className="text-sm font-medium text-gray-600">{currentYear} Hours</p>
               <p className="text-2xl font-bold text-green-600">{yearHours.toFixed(1)}</p>
@@ -178,7 +183,7 @@ const MaterialParticipation = () => {
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center">
-            <WrenchScrewdriverIcon className="h-8 w-8 text-orange-600 mr-4" />
+            <Calculator className="h-8 w-8 text-orange-600 mr-4" />
             <div>
               <p className="text-sm font-medium text-gray-600">Properties</p>
               <p className="text-2xl font-bold text-orange-600">{Object.keys(logsByProperty).length}</p>
@@ -190,7 +195,7 @@ const MaterialParticipation = () => {
       {/* Tax Compliance Notice */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
         <div className="flex items-start">
-          <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 text-yellow-600 mr-3 mt-0.5" />
           <div>
             <h4 className="font-semibold text-yellow-900 mb-2">Tax Compliance</h4>
             <p className="text-sm text-yellow-800">
@@ -269,7 +274,7 @@ const MaterialParticipation = () => {
         </div>
       ) : (
         <div className="text-center py-12">
-          <ClockIcon className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+          <Clock className="h-16 w-16 text-gray-400 mx-auto mb-6" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No Participation Logs</h3>
           <p className="text-gray-600 mb-6">
             Start tracking your work hours to maintain proper tax compliance records.
@@ -293,7 +298,7 @@ const MaterialParticipation = () => {
                 onClick={() => setShowAddLog(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <Edit className="h-6 w-6" />
               </button>
             </div>
             <form onSubmit={handleAddLog} className="space-y-4">

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { apiService } from '../services/api'
-import { 
-  DocumentTextIcon, 
-  PlusIcon,
-  ExclamationTriangleIcon,
-  ArrowDownTrayIcon
-} from '@heroicons/react/24/outline'
+import {
+  FileText,
+  Download,
+  Calendar,
+  Building2,
+  DollarSign,
+  Calculator,
+  AlertTriangle,
+  CheckCircle
+} from 'lucide-react'
 
 const TaxForms = () => {
   const [taxFormsData, setTaxFormsData] = useState(null)
@@ -71,7 +75,7 @@ Date: ${new Date().toLocaleDateString()}`
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Tax Forms</h2>
           <p className="text-gray-600">{error}</p>
         </div>
@@ -257,7 +261,7 @@ Date: ${new Date().toLocaleDateString()}`
           {/* Download Section for Empty State */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="text-center mb-6">
-              <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Tax Form Templates</h3>
               <p className="text-gray-600">
                 Download tax form templates for your real estate business. These are template forms that you can use as a starting point.
@@ -279,7 +283,7 @@ Date: ${new Date().toLocaleDateString()}`
                         {form.category}
                       </span>
                     </div>
-                    <ArrowDownTrayIcon className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                    <Download className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
                   </div>
                 </button>
               ))}
@@ -308,7 +312,7 @@ Date: ${new Date().toLocaleDateString()}`
           {/* Call to Action */}
           <div className="text-center">
             <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto">
-              <PlusIcon className="h-5 w-5 mr-2" />
+              <CheckCircle className="h-5 w-5 mr-2" />
               Add Your First Property
             </button>
             <p className="text-sm text-gray-500 mt-2">
