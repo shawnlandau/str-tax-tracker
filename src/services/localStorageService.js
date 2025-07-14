@@ -77,14 +77,16 @@ class LocalStorageService {
   saveProperty(property) {
     const properties = this.getProperties()
     const existingIndex = properties.findIndex(p => p.id === property.id)
-    
+    let saved
     if (existingIndex >= 0) {
       properties[existingIndex] = { ...properties[existingIndex], ...property }
+      saved = properties[existingIndex]
     } else {
-      properties.push({ ...property, id: property.id || Date.now().toString() })
+      saved = { ...property, id: property.id || Date.now().toString() }
+      properties.push(saved)
     }
-    
-    return this.setItem(this.storageKeys.properties, properties)
+    this.setItem(this.storageKeys.properties, properties)
+    return saved
   }
 
   deleteProperty(propertyId) {
