@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
-import api from '../../services/api'
+import { apiService } from '../../services/api'
 
 ChartJS.register(
   CategoryScale,
@@ -36,7 +36,7 @@ const DepreciationChart = () => {
   const loadDepreciationData = async () => {
     try {
       setLoading(true)
-      const depreciationData = await api.getDepreciationChart()
+      const depreciationData = await apiService.getDepreciationChart()
       setData(depreciationData)
     } catch (error) {
       console.error('Error loading depreciation data:', error)

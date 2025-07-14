@@ -47,7 +47,7 @@ const Dashboard = () => {
   const dashboardCards = [
     {
       title: 'Properties',
-      value: dashboardData?.overview?.total_properties || 0,
+      value: dashboardData?.totalProperties || 0,
       change: '+0',
       changeType: 'positive',
       icon: BuildingOfficeIcon,
@@ -55,8 +55,8 @@ const Dashboard = () => {
       href: '/properties'
     },
     {
-      title: 'Total Portfolio Value',
-      value: formatCurrency(dashboardData?.overview?.total_portfolio_value || 0),
+      title: 'Total Revenue',
+      value: formatCurrency(dashboardData?.totalRevenue || 0),
       change: '+0%',
       changeType: 'positive',
       icon: CurrencyDollarIcon,
@@ -64,17 +64,8 @@ const Dashboard = () => {
       href: '/properties'
     },
     {
-      title: 'Monthly Income',
-      value: formatCurrency(dashboardData?.overview?.monthly_income || 0),
-      change: '+0%',
-      changeType: 'positive',
-      icon: ArrowTrendingUpIcon,
-      color: 'bg-emerald-500',
-      href: '/properties'
-    },
-    {
-      title: 'Monthly Expenses',
-      value: formatCurrency(dashboardData?.overview?.monthly_expenses || 0),
+      title: 'Total Expenses',
+      value: formatCurrency(dashboardData?.totalExpenses || 0),
       change: '+0%',
       changeType: 'negative',
       icon: ChartBarIcon,
@@ -82,8 +73,17 @@ const Dashboard = () => {
       href: '/properties'
     },
     {
-      title: 'Net Cash Flow',
-      value: formatCurrency(dashboardData?.overview?.net_monthly_cashflow || 0),
+      title: 'Net Income',
+      value: formatCurrency(dashboardData?.netIncome || 0),
+      change: '+0%',
+      changeType: dashboardData?.netIncome >= 0 ? 'positive' : 'negative',
+      icon: ArrowTrendingUpIcon,
+      color: 'bg-emerald-500',
+      href: '/properties'
+    },
+    {
+      title: 'Total Bookings',
+      value: dashboardData?.totalBookings || 0,
       change: '+0%',
       changeType: 'positive',
       icon: CurrencyDollarIcon,
@@ -92,7 +92,7 @@ const Dashboard = () => {
     },
     {
       title: 'Depreciation',
-      value: formatCurrency(dashboardData?.overview?.total_depreciation || 0),
+      value: formatCurrency(dashboardData?.totalDepreciation || 0),
       change: '+0%',
       changeType: 'positive',
       icon: CalculatorIcon,
@@ -169,9 +169,9 @@ const Dashboard = () => {
       {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-        {dashboardData?.overview?.properties && dashboardData.overview.properties.length > 0 ? (
+        {dashboardData?.properties && dashboardData.properties.length > 0 ? (
           <div className="space-y-4">
-            {dashboardData.overview.properties.slice(0, 5).map((property, index) => (
+            {dashboardData.properties.slice(0, 5).map((property, index) => (
               <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center">
                   <BuildingOfficeIcon className="h-5 w-5 text-blue-600 mr-3" />
@@ -181,7 +181,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium text-gray-900">{formatCurrency(property.current_value)}</p>
+                  <p className="font-medium text-gray-900">{formatCurrency(property.current_value || 0)}</p>
                   <p className="text-sm text-gray-600">{property.status}</p>
                 </div>
               </div>

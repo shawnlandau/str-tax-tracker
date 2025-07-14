@@ -1,16 +1,83 @@
 {
-  "name": "Real Estate Portfolio Tracker",
-  "short_name": "RE Portfolio",
-  "description": "Personal real estate investment portfolio tracker",
+  "name": "STR Tax Tracker - Real Estate Portfolio Manager",
+  "short_name": "STR Tax Tracker",
+  "description": "Comprehensive Airbnb and real estate portfolio tracker with tax compliance and depreciation tracking",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["business", "finance", "productivity"],
   "icons": [
     {
-      "src": "/vite.svg",
-      "sizes": "any",
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-72.svg",
+      "sizes": "72x72",
       "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-96.svg",
+      "sizes": "96x96",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-128.svg",
+      "sizes": "128x128",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-144.svg",
+      "sizes": "144x144",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-152.svg",
+      "sizes": "152x152",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-384.svg",
+      "sizes": "384x384",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Property",
+      "short_name": "Add Property",
+      "description": "Quickly add a new property to your portfolio",
+      "url": "/properties?action=add",
+      "icons": [
+        {
+          "src": "/icon-96.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "View Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your portfolio overview",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-96.svg",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 } 

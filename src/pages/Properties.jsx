@@ -29,6 +29,12 @@ const Properties = () => {
     guest_name: '',
     notes: ''
   })
+  const [newExpense, setNewExpense] = useState({
+    description: '',
+    amount: '',
+    category: 'Maintenance',
+    date: new Date().toISOString().split('T')[0]
+  })
   const [propertyDetails, setPropertyDetails] = useState({
     warranties: [],
     maintenance_schedule: [],
@@ -99,23 +105,26 @@ const Properties = () => {
     return { totalIncome, totalExpenses, netIncome }
   }
 
-  const handleAddBooking = (e) => {
+  const handleAddBooking = async (e) => {
     e.preventDefault()
     
     try {
       const bookingToAdd = {
         ...newBooking,
-        id: Date.now().toString(),
+        property_id: selectedPropertyId,
         amount: parseFloat(newBooking.amount) || 0,
         date: new Date().toISOString()
       }
+      
+      // Save booking via API
+      const savedBooking = await apiService.createBooking(bookingToAdd)
       
       // Add booking to the selected property
       setProperties(properties.map(property => {
         if (property.id === selectedPropertyId) {
           return {
             ...property,
-            bookings: [...(property.bookings || []), bookingToAdd]
+            bookings: [...(property.bookings || []), savedBooking]
           }
         }
         return property
@@ -134,6 +143,7 @@ const Properties = () => {
       setSelectedPropertyId(null)
     } catch (err) {
       console.error('Failed to add booking:', err)
+      setError('Failed to save booking. Please try again.')
     }
   }
 
@@ -143,7 +153,6 @@ const Properties = () => {
     try {
       const propertyToAdd = {
         ...newProperty,
-        id: Date.now().toString(),
         purchase_price: parseFloat(newProperty.purchase_price) || 0,
         current_value: parseFloat(newProperty.current_value) || 0,
         mortgage: parseFloat(newProperty.mortgage) || 0,
@@ -154,8 +163,11 @@ const Properties = () => {
         other_fixed_costs: parseFloat(newProperty.other_fixed_costs) || 0
       }
       
+      // Save property via API
+      const savedProperty = await apiService.createProperty(propertyToAdd)
+      
       // Add to local state
-      setProperties([...properties, propertyToAdd])
+      setProperties([...properties, savedProperty])
       
       // Reset form
       setNewProperty({
@@ -177,6 +189,7 @@ const Properties = () => {
       setShowAddProperty(false)
     } catch (err) {
       console.error('Failed to add property:', err)
+      setError('Failed to save property. Please try again.')
     }
   }
 
@@ -186,10 +199,45 @@ const Properties = () => {
     setShowAddIncome(false)
   }
 
-  const handleAddExpense = (propertyId, expenseData) => {
-    // In a real app, this would call the API
-    console.log('Adding expense to property:', propertyId, expenseData)
-    setShowAddExpense(false)
+  const handleAddExpense = async (e) => {
+    e.preventDefault()
+    
+    try {
+      const expenseToAdd = {
+        ...newExpense,
+        property_id: selectedPropertyId,
+        amount: parseFloat(newExpense.amount) || 0,
+        date: new Date(newExpense.date).toISOString()
+      }
+      
+      // Save expense via API
+      const savedExpense = await apiService.createTransaction(expenseToAdd)
+      
+      // Add expense to the selected property
+      setProperties(properties.map(property => {
+        if (property.id === selectedPropertyId) {
+          return {
+            ...property,
+            expenses: [...(property.expenses || []), savedExpense]
+          }
+        }
+        return property
+      }))
+      
+      // Reset form
+      setNewExpense({
+        description: '',
+        amount: '',
+        category: 'Maintenance',
+        date: new Date().toISOString().split('T')[0]
+      })
+      
+      setShowAddExpense(false)
+      setSelectedPropertyId(null)
+    } catch (err) {
+      console.error('Failed to add expense:', err)
+      setError('Failed to save expense. Please try again.')
+    }
   }
 
   const handleAddPropertyDetails = (e) => {
@@ -327,13 +375,22 @@ const Properties = () => {
           <h1 className="text-3xl font-bold text-gray-900">Properties</h1>
           <p className="text-gray-600">Manage your real estate portfolio with integrated income & expenses</p>
         </div>
-        <button 
-          onClick={() => setShowAddProperty(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Property
-        </button>
+        <div className="flex space-x-3">
+          <a 
+            href="/material-participation"
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+          >
+            <WrenchScrewdriverIcon className="h-5 w-5 mr-2" />
+            Track Work Hours
+          </a>
+          <button 
+            onClick={() => setShowAddProperty(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Add Property
+          </button>
+        </div>
       </div>
 
       {properties.length > 0 ? (
@@ -527,11 +584,23 @@ const Properties = () => {
                 {/* Quick Actions */}
                 <div className="p-6 bg-gray-50 border-t border-gray-200">
                   <div className="flex space-x-3">
-                    <button className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                    <button 
+                      onClick={() => {
+                        setSelectedPropertyId(property.id)
+                        setShowAddBooking(true)
+                      }}
+                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                    >
                       <CalendarIcon className="h-5 w-5 mr-2" />
                       Add Booking
                     </button>
-                    <button className="flex-1 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center">
+                    <button 
+                      onClick={() => {
+                        setSelectedPropertyId(property.id)
+                        setShowAddExpense(true)
+                      }}
+                      className="flex-1 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center"
+                    >
                       <WrenchScrewdriverIcon className="h-5 w-5 mr-2" />
                       Add Expense
                     </button>
@@ -798,13 +867,16 @@ const Properties = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Add Expense</h3>
-            <form className="space-y-4">
+            <form onSubmit={handleAddExpense} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <input 
                   type="text" 
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   placeholder="e.g., Plumbing repair"
+                  value={newExpense.description}
+                  onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
+                  required
                 />
               </div>
               <div>
@@ -813,11 +885,18 @@ const Properties = () => {
                   type="number" 
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   placeholder="0.00"
+                  value={newExpense.amount}
+                  onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                <select 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  value={newExpense.category}
+                  onChange={(e) => setNewExpense({...newExpense, category: e.target.value})}
+                >
                   <option>Maintenance</option>
                   <option>Utilities</option>
                   <option>Insurance</option>
@@ -831,6 +910,9 @@ const Properties = () => {
                 <input 
                   type="date" 
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  value={newExpense.date}
+                  onChange={(e) => setNewExpense({...newExpense, date: e.target.value})}
+                  required
                 />
               </div>
               <div className="flex space-x-3 pt-4">

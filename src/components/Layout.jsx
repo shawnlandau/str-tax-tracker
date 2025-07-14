@@ -2,12 +2,16 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { 
   Home, 
-  Building2, 
+  Building2,
+  DollarSign,
+  Clock,
   Calculator,
   FileText,
+  Database,
   Menu,
   X
 } from 'lucide-react'
+import ConnectionStatus from './ConnectionStatus'
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -16,8 +20,11 @@ const Layout = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Properties', href: '/properties', icon: Building2 },
+    { name: 'Transactions', href: '/transactions', icon: DollarSign },
+    { name: 'Material Participation', href: '/material-participation', icon: Clock },
     { name: 'Depreciation', href: '/depreciation', icon: Calculator },
     { name: 'Tax Forms', href: '/tax-forms', icon: FileText },
+    { name: 'Data Manager', href: '/data-manager', icon: Database },
   ]
 
   return (
@@ -100,6 +107,13 @@ const Layout = ({ children }) => {
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <h1 className="text-lg font-semibold text-gray-900">Portfolio Tracker</h1>
           </div>
+          <ConnectionStatus />
+        </div>
+
+        {/* Desktop header */}
+        <div className="hidden lg:flex lg:items-center lg:justify-between lg:px-6 lg:py-4 lg:border-b lg:border-gray-200">
+          <h1 className="text-lg font-semibold text-gray-900">Portfolio Tracker</h1>
+          <ConnectionStatus />
         </div>
 
         {/* Page content */}

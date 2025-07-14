@@ -1,268 +1,479 @@
-import { mockApiService } from './mockData.js'
-
-const API_BASE_URL = '/api'
+import { hybridService } from './hybridService.js'
 
 class ApiService {
-  async request(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    }
-
-    try {
-      const response = await fetch(url, config)
-      
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Network error' }))
-        throw new Error(error.error || `HTTP ${response.status}`)
-      }
-      
-      return await response.json()
-    } catch (error) {
-      console.error('API request failed, using mock data:', error)
-      // Return mock data when API fails
-      return this.getMockData(endpoint)
-    }
-  }
-
-  getMockData(endpoint) {
-    // Map API endpoints to mock service methods
-    const mockMap = {
-      '/dashboard/overview': () => mockApiService.getDashboardOverview(),
-      '/properties': () => mockApiService.getProperties(),
-      '/transactions': () => mockApiService.getTransactions(),
-      '/depreciation': () => mockApiService.getDepreciation(),
-      '/tax-forms/data': () => mockApiService.getTaxFormsData(2024),
-      '/tax-forms/summary': () => mockApiService.getTaxSummary(2024),
-    }
-
-    // Handle dynamic endpoints like /properties/1
-    if (endpoint.startsWith('/properties/') && endpoint !== '/properties') {
-      const id = endpoint.split('/').pop()
-      return mockApiService.getProperty(id)
-    }
-
-    if (endpoint.startsWith('/transactions/property/')) {
-      const propertyId = endpoint.split('/').pop()
-      return mockApiService.getPropertyTransactions(propertyId)
-    }
-
-    if (endpoint.startsWith('/depreciation/property/')) {
-      const propertyId = endpoint.split('/').pop()
-      return mockApiService.getPropertyDepreciation(propertyId)
-    }
-
-    if (endpoint.startsWith('/tax-forms/forms/')) {
-      const year = endpoint.split('/').pop()
-      return mockApiService.getTaxFormsData(year)
-    }
-
-    const mockMethod = mockMap[endpoint]
-    if (mockMethod) {
-      return mockMethod()
-    }
-
-    // Default fallback
-    return Promise.resolve({ error: 'Endpoint not found in mock data' })
-  }
-
   // Properties API
   async getProperties() {
-    return this.request('/properties')
+    return hybridService.getProperties()
   }
 
   async getProperty(id) {
-    return this.request(`/properties/${id}`)
+    return hybridService.getProperty(id)
   }
 
   async createProperty(data) {
-    return this.request('/properties', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
+    return hybridService.createProperty(data)
   }
 
   async updateProperty(id, data) {
-    return this.request(`/properties/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
+    return hybridService.updateProperty(id, data)
   }
 
   async deleteProperty(id) {
-    return this.request(`/properties/${id}`, {
-      method: 'DELETE',
-    })
+    return hybridService.deleteProperty(id)
   }
 
-  // Transactions API
+  // Transactions/Expenses API
   async getTransactions() {
-    return this.request('/transactions')
+    return hybridService.getExpenses()
   }
 
   async getPropertyTransactions(propertyId) {
-    return this.request(`/transactions/property/${propertyId}`)
+    return hybridService.getPropertyExpenses(propertyId)
   }
 
   async getTransaction(id) {
-    return this.request(`/transactions/${id}`)
+    return hybridService.getDocument('expenses', id)
   }
 
   async createTransaction(data) {
-    return this.request('/transactions', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
+    return hybridService.createExpense(data)
   }
 
   async updateTransaction(id, data) {
-    return this.request(`/transactions/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
+    return hybridService.updateExpense(id, data)
   }
 
   async deleteTransaction(id) {
-    return this.request(`/transactions/${id}`, {
-      method: 'DELETE',
-    })
+    return hybridService.deleteExpense(id)
   }
 
   async getTransactionSummary(propertyId, year) {
-    const params = year ? `?year=${year}` : ''
-    return this.request(`/transactions/summary/property/${propertyId}${params}`)
-  }
-
-  // Depreciation API
-  async getDepreciation() {
-    return this.request('/depreciation')
-  }
-
-  async getPropertyDepreciation(propertyId) {
-    return this.request(`/depreciation/property/${propertyId}`)
-  }
-
-  async getDepreciationRecord(id) {
-    return this.request(`/depreciation/${id}`)
-  }
-
-  async createDepreciation(data) {
-    return this.request('/depreciation', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  }
-
-  async updateDepreciation(id, data) {
-    return this.request(`/depreciation/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  }
-
-  async deleteDepreciation(id) {
-    return this.request(`/depreciation/${id}`, {
-      method: 'DELETE',
-    })
-  }
-
-  async getDepreciationSummary(propertyId) {
-    return this.request(`/depreciation/summary/property/${propertyId}`)
-  }
-
-  // Dashboard API
-  async getDashboardData() {
-    return this.request('/dashboard/overview')
-  }
-
-  async getPropertyPerformance() {
-    return this.request('/dashboard/property-performance')
-  }
-
-  async getMonthlyCashFlow(year) {
-    const params = year ? `?year=${year}` : ''
-    return this.request(`/dashboard/monthly-cashflow${params}`)
-  }
-
-  async getDepreciationChart() {
-    return this.request('/dashboard/depreciation-chart')
-  }
-
-  async getTransactionCategories(year) {
-    const params = year ? `?year=${year}` : ''
-    return this.request(`/dashboard/transaction-categories${params}`)
-  }
-
-  async getPropertyDistribution() {
-    return this.request('/dashboard/property-distribution')
+    const expenses = await hybridService.getExpenses()
+    const filtered = expenses.filter(e => e.property_id === propertyId)
+    
+    if (year) {
+      const yearStart = new Date(year, 0, 1)
+      const yearEnd = new Date(year, 11, 31)
+      return filtered.filter(e => {
+        const expenseDate = new Date(e.date)
+        return expenseDate >= yearStart && expenseDate <= yearEnd
+      })
+    }
+    
+    return filtered
   }
 
   // Bookings API
   async getBookings() {
-    return this.request('/bookings')
+    return hybridService.getBookings()
   }
 
   async getPropertyBookings(propertyId) {
-    return this.request(`/bookings/property/${propertyId}`)
+    return hybridService.getPropertyBookings(propertyId)
   }
 
   async getBooking(id) {
-    return this.request(`/bookings/${id}`)
+    return hybridService.getDocument('bookings', id)
   }
 
   async createBooking(data) {
-    return this.request('/bookings', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
+    return hybridService.createBooking(data)
   }
 
   async updateBooking(id, data) {
-    return this.request(`/bookings/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
+    return hybridService.updateBooking(id, data)
   }
 
   async deleteBooking(id) {
-    return this.request(`/bookings/${id}`, {
-      method: 'DELETE',
-    })
+    return hybridService.deleteBooking(id)
   }
 
   async getBookingStats() {
-    return this.request('/bookings/stats/summary')
+    const bookings = await hybridService.getBookings()
+    const totalBookings = bookings.length
+    const totalRevenue = bookings.reduce((sum, b) => sum + (b.amount || 0), 0)
+    const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0
+    
+    return {
+      totalBookings,
+      totalRevenue,
+      avgBookingValue
+    }
   }
 
-  // Tax Forms API
-  async getTaxSummary(year) {
-    return this.request(`/tax-forms/summary/${year}`)
+  // Depreciation API
+  async getDepreciation() {
+    return hybridService.getCollection('depreciation')
   }
 
-  async getSection179Summary(year) {
-    return this.request(`/tax-forms/section179/${year}`)
+  async getPropertyDepreciation(propertyId) {
+    const depreciation = await hybridService.getCollection('depreciation')
+    return depreciation.filter(d => d.property_id === propertyId)
   }
 
-  async getBonusDepreciationSummary(year) {
-    return this.request(`/tax-forms/bonus-depreciation/${year}`)
+  async getDepreciationRecord(id) {
+    return hybridService.getDocument('depreciation', id)
   }
 
-  async getRentalIncomeSummary(year) {
-    return this.request(`/tax-forms/rental-income/${year}`)
+  async createDepreciation(data) {
+    return hybridService.addDocument('depreciation', data)
   }
 
-  async getExpensesBreakdown(year) {
-    return this.request(`/tax-forms/expenses/${year}`)
+  async updateDepreciation(id, data) {
+    return hybridService.updateDocument('depreciation', id, data)
   }
 
-  async getTaxFormsData(year) {
-    return this.request(`/tax-forms/forms/${year}`)
+  async deleteDepreciation(id) {
+    return hybridService.deleteDocument('depreciation', id)
+  }
+
+  async getDepreciationSummary(propertyId) {
+    const depreciation = await hybridService.getCollection('depreciation')
+    const propertyDepreciation = depreciation.filter(d => d.property_id === propertyId)
+    
+    const totalDepreciation = propertyDepreciation.reduce((sum, d) => sum + (d.amount || 0), 0)
+    const bonusDepreciation = propertyDepreciation
+      .filter(d => d.type === 'bonus')
+      .reduce((sum, d) => sum + (d.amount || 0), 0)
+    
+    return {
+      totalDepreciation,
+      bonusDepreciation,
+      regularDepreciation: totalDepreciation - bonusDepreciation,
+      records: propertyDepreciation
+    }
+  }
+
+  // Dashboard API
+  async getDashboardData() {
+    const [properties, bookings, expenses, depreciation] = await Promise.all([
+      hybridService.getProperties(),
+      hybridService.getBookings(),
+      hybridService.getExpenses(),
+      hybridService.getCollection('depreciation')
+    ])
+
+    const totalProperties = properties.length
+    const totalBookings = bookings.length
+    const totalRevenue = bookings.reduce((sum, b) => sum + (b.amount || 0), 0)
+    const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+    const totalDepreciation = depreciation.reduce((sum, d) => sum + (d.amount || 0), 0)
+    const netIncome = totalRevenue - totalExpenses
+
+    return {
+      totalProperties,
+      totalBookings,
+      totalRevenue,
+      totalExpenses,
+      totalDepreciation,
+      netIncome,
+      properties: properties.slice(0, 5), // Recent properties
+      recentBookings: bookings.slice(-5), // Recent bookings
+      recentExpenses: expenses.slice(-5) // Recent expenses
+    }
+  }
+
+  async getPropertyPerformance() {
+    const [properties, bookings, expenses] = await Promise.all([
+      hybridService.getProperties(),
+      hybridService.getBookings(),
+      hybridService.getExpenses()
+    ])
+
+    return properties.map(property => {
+      const propertyBookings = bookings.filter(b => b.property_id === property.id)
+      const propertyExpenses = expenses.filter(e => e.property_id === property.id)
+      
+      const totalIncome = propertyBookings.reduce((sum, b) => sum + (b.amount || 0), 0)
+      const totalExpenses = propertyExpenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+      const netIncome = totalIncome - totalExpenses
+      
+      return {
+        ...property,
+        totalIncome,
+        totalExpenses,
+        netIncome,
+        bookingCount: propertyBookings.length,
+        expenseCount: propertyExpenses.length
+      }
+    })
+  }
+
+  async getMonthlyCashFlow(year = new Date().getFullYear()) {
+    const [bookings, expenses] = await Promise.all([
+      hybridService.getBookings(),
+      hybridService.getExpenses()
+    ])
+    
+    const monthlyData = Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1
+      const monthBookings = bookings.filter(b => {
+        const bookingDate = new Date(b.date)
+        return bookingDate.getFullYear() === year && bookingDate.getMonth() === i
+      })
+      const monthExpenses = expenses.filter(e => {
+        const expenseDate = new Date(e.date)
+        return expenseDate.getFullYear() === year && expenseDate.getMonth() === i
+      })
+      
+      const income = monthBookings.reduce((sum, b) => sum + (b.amount || 0), 0)
+      const expenses = monthExpenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+      
+      return {
+        month,
+        income,
+        expenses,
+        net: income - expenses
+      }
+    })
+    
+    return monthlyData
+  }
+
+  async getDepreciationChart() {
+    const depreciation = await hybridService.getCollection('depreciation')
+    const currentYear = new Date().getFullYear()
+    
+    const yearlyData = Array.from({ length: 5 }, (_, i) => {
+      const year = currentYear - 2 + i
+      const yearDepreciation = depreciation.filter(d => {
+        const depDate = new Date(d.date)
+        return depDate.getFullYear() === year
+      })
+      
+      const total = yearDepreciation.reduce((sum, d) => sum + (d.amount || 0), 0)
+      const bonus = yearDepreciation
+        .filter(d => d.type === 'bonus')
+        .reduce((sum, d) => sum + (d.amount || 0), 0)
+      
+      return {
+        year,
+        total,
+        bonus,
+        regular: total - bonus
+      }
+    })
+    
+    return yearlyData
+  }
+
+  async getTransactionCategories(year = new Date().getFullYear()) {
+    const expenses = await hybridService.getExpenses()
+    const yearExpenses = expenses.filter(e => {
+      const expenseDate = new Date(e.date)
+      return expenseDate.getFullYear() === year
+    })
+    
+    const categories = {}
+    yearExpenses.forEach(expense => {
+      const category = expense.category || 'Other'
+      if (!categories[category]) {
+        categories[category] = 0
+      }
+      categories[category] += expense.amount || 0
+    })
+    
+    return Object.entries(categories).map(([category, amount]) => ({
+      category,
+      amount
+    }))
+  }
+
+  async getPropertyDistribution() {
+    const [properties, bookings] = await Promise.all([
+      hybridService.getProperties(),
+      hybridService.getBookings()
+    ])
+    
+    return properties.map(property => {
+      const propertyBookings = bookings.filter(b => b.property_id === property.id)
+      const totalIncome = propertyBookings.reduce((sum, b) => sum + (b.amount || 0), 0)
+      
+      return {
+        id: property.id,
+        name: property.address,
+        value: property.current_value || 0,
+        income: totalIncome
+      }
+    })
+  }
+
+  // Tax forms and estimates
+  async getTaxSummary(year = new Date().getFullYear()) {
+    const [bookings, expenses, depreciation] = await Promise.all([
+      hybridService.getBookings(),
+      hybridService.getExpenses(),
+      hybridService.getCollection('depreciation')
+    ])
+    
+    const yearBookings = bookings.filter(b => {
+      const bookingDate = new Date(b.date)
+      return bookingDate.getFullYear() === year
+    })
+    
+    const yearExpenses = expenses.filter(e => {
+      const expenseDate = new Date(e.date)
+      return expenseDate.getFullYear() === year
+    })
+    
+    const yearDepreciation = depreciation.filter(d => {
+      const depDate = new Date(d.date)
+      return depDate.getFullYear() === year
+    })
+    
+    const totalIncome = yearBookings.reduce((sum, b) => sum + (b.amount || 0), 0)
+    const totalExpenses = yearExpenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+    const totalDepreciation = yearDepreciation.reduce((sum, d) => sum + (d.amount || 0), 0)
+    const bonusDepreciation = yearDepreciation
+      .filter(d => d.type === 'bonus')
+      .reduce((sum, d) => sum + (d.amount || 0), 0)
+    
+    return {
+      year,
+      totalIncome,
+      totalExpenses,
+      totalDepreciation,
+      bonusDepreciation,
+      regularDepreciation: totalDepreciation - bonusDepreciation,
+      netIncome: totalIncome - totalExpenses - totalDepreciation,
+      taxableIncome: totalIncome - totalExpenses - totalDepreciation
+    }
+  }
+
+  async getSection179Summary(year = new Date().getFullYear()) {
+    const depreciation = await hybridService.getCollection('depreciation')
+    const yearDepreciation = depreciation.filter(d => {
+      const depDate = new Date(d.date)
+      return depDate.getFullYear() === year && d.type === 'section179'
+    })
+    
+    const totalSection179 = yearDepreciation.reduce((sum, d) => sum + (d.amount || 0), 0)
+    
+    return {
+      year,
+      totalSection179,
+      records: yearDepreciation
+    }
+  }
+
+  async getBonusDepreciationSummary(year = new Date().getFullYear()) {
+    const depreciation = await hybridService.getCollection('depreciation')
+    const yearDepreciation = depreciation.filter(d => {
+      const depDate = new Date(d.date)
+      return depDate.getFullYear() === year && d.type === 'bonus'
+    })
+    
+    const totalBonus = yearDepreciation.reduce((sum, d) => sum + (d.amount || 0), 0)
+    
+    return {
+      year,
+      totalBonus,
+      records: yearDepreciation
+    }
+  }
+
+  async getRentalIncomeSummary(year = new Date().getFullYear()) {
+    const bookings = await hybridService.getBookings()
+    const yearBookings = bookings.filter(b => {
+      const bookingDate = new Date(b.date)
+      return bookingDate.getFullYear() === year
+    })
+    
+    const totalIncome = yearBookings.reduce((sum, b) => sum + (b.amount || 0), 0)
+    const avgBookingValue = yearBookings.length > 0 ? totalIncome / yearBookings.length : 0
+    
+    return {
+      year,
+      totalIncome,
+      bookingCount: yearBookings.length,
+      avgBookingValue,
+      bookings: yearBookings
+    }
+  }
+
+  async getExpensesBreakdown(year = new Date().getFullYear()) {
+    const expenses = await hybridService.getExpenses()
+    const yearExpenses = expenses.filter(e => {
+      const expenseDate = new Date(e.date)
+      return expenseDate.getFullYear() === year
+    })
+    
+    const categories = {}
+    yearExpenses.forEach(expense => {
+      const category = expense.category || 'Other'
+      if (!categories[category]) {
+        categories[category] = 0
+      }
+      categories[category] += expense.amount || 0
+    })
+    
+    const totalExpenses = yearExpenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+    
+    return {
+      year,
+      totalExpenses,
+      categories: Object.entries(categories).map(([category, amount]) => ({
+        category,
+        amount,
+        percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0
+      })),
+      expenses: yearExpenses
+    }
+  }
+
+  async getTaxFormsData(year = new Date().getFullYear()) {
+    const [taxSummary, section179, bonusDepreciation, rentalIncome, expensesBreakdown] = await Promise.all([
+      this.getTaxSummary(year),
+      this.getSection179Summary(year),
+      this.getBonusDepreciationSummary(year),
+      this.getRentalIncomeSummary(year),
+      this.getExpensesBreakdown(year)
+    ])
+    
+    return {
+      year,
+      taxSummary,
+      section179,
+      bonusDepreciation,
+      rentalIncome,
+      expensesBreakdown
+    }
+  }
+
+  // Material participation tracking
+  async getMaterialParticipation() {
+    return hybridService.getMaterialParticipation()
+  }
+
+  async saveMaterialParticipation(data) {
+    return hybridService.createMaterialParticipation(data)
+  }
+
+  async deleteMaterialParticipation(id) {
+    return hybridService.deleteMaterialParticipation(id)
+  }
+
+  // Data management
+  async exportData() {
+    return hybridService.exportAllData()
+  }
+
+  async importData(data) {
+    return hybridService.importData(data)
+  }
+
+  async clearAllData() {
+    return hybridService.clearAllData()
+  }
+
+  async getStorageInfo() {
+    return hybridService.getStorageInfo()
+  }
+
+  // Get connection status
+  getConnectionStatus() {
+    return hybridService.getConnectionStatus()
   }
 }
 
-const apiService = new ApiService()
-export { apiService } 
+export const apiService = new ApiService() 
