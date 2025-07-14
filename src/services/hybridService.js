@@ -1,4 +1,4 @@
-import { firebaseService } from './firebaseService.js'
+import firebaseService from './firebaseService.js'
 import { localStorageService } from './localStorageService.js'
 
 class HybridService {

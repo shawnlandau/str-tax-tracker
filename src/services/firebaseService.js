@@ -7,380 +7,197 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  where, 
+  where,
   orderBy,
+  limit,
+  writeBatch,
   serverTimestamp 
-} from 'firebase/firestore'
-import { db } from '../firebase-config'
+} from 'firebase/firestore';
+import { db } from '../firebase-config';
 
+// Check if Firebase is properly configured
+const isFirebaseConfigured = () => {
+  try {
+    // Check if db is available and properly initialized
+    return db && typeof db.collection === 'function';
+  } catch (error) {
+    console.warn('Firebase not properly configured, falling back to localStorage');
+    return false;
+  }
+};
+
+// Firebase service with fallback to localStorage
 class FirebaseService {
   constructor() {
-    this.collections = {
-      properties: 'properties',
-      bookings: 'bookings',
-      expenses: 'expenses',
-      depreciation: 'depreciation',
-      materialParticipation: 'materialParticipation',
-      taxEstimates: 'taxEstimates',
-      settings: 'settings'
+    this.isConfigured = isFirebaseConfigured();
+    if (!this.isConfigured) {
+      console.warn('Firebase not available, using localStorage fallback');
     }
   }
 
-  // Generic CRUD operations
+  // Generic CRUD operations with fallback
   async getCollection(collectionName) {
+    if (!this.isConfigured) {
+      return this.getFromLocalStorage(collectionName);
+    }
+
     try {
-      const querySnapshot = await getDocs(collection(db, collectionName))
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
+      const querySnapshot = await getDocs(collection(db, collectionName));
+      const data = [];
+      querySnapshot.forEach((doc) => {
+        data.push({ id: doc.id, ...doc.data() });
+      });
+      return data;
     } catch (error) {
-      console.error(`Error getting ${collectionName}:`, error)
-      throw error
+      console.error(`Error fetching ${collectionName}:`, error);
+      return this.getFromLocalStorage(collectionName);
     }
   }
 
   async getDocument(collectionName, docId) {
+    if (!this.isConfigured) {
+      return this.getFromLocalStorage(collectionName, docId);
+    }
+
     try {
-      const docRef = doc(db, collectionName, docId)
-      const docSnap = await getDoc(docRef)
-      
+      const docRef = doc(db, collectionName, docId);
+      const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() }
-      } else {
-        return null
+        return { id: docSnap.id, ...docSnap.data() };
       }
+      return null;
     } catch (error) {
-      console.error(`Error getting document ${docId} from ${collectionName}:`, error)
-      throw error
+      console.error(`Error fetching document ${docId}:`, error);
+      return this.getFromLocalStorage(collectionName, docId);
     }
   }
 
   async addDocument(collectionName, data) {
+    if (!this.isConfigured) {
+      return this.addToLocalStorage(collectionName, data);
+    }
+
     try {
       const docRef = await addDoc(collection(db, collectionName), {
         ...data,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
-      })
-      return { id: docRef.id, ...data }
+      });
+      return { id: docRef.id, ...data };
     } catch (error) {
-      console.error(`Error adding document to ${collectionName}:`, error)
-      throw error
+      console.error(`Error adding document to ${collectionName}:`, error);
+      return this.addToLocalStorage(collectionName, data);
     }
   }
 
   async updateDocument(collectionName, docId, data) {
+    if (!this.isConfigured) {
+      return this.updateInLocalStorage(collectionName, docId, data);
+    }
+
     try {
-      const docRef = doc(db, collectionName, docId)
+      const docRef = doc(db, collectionName, docId);
       await updateDoc(docRef, {
         ...data,
         updatedAt: serverTimestamp()
-      })
-      return { id: docId, ...data }
+      });
+      return { id: docId, ...data };
     } catch (error) {
-      console.error(`Error updating document ${docId} in ${collectionName}:`, error)
-      throw error
+      console.error(`Error updating document ${docId}:`, error);
+      return this.updateInLocalStorage(collectionName, docId, data);
     }
   }
 
   async deleteDocument(collectionName, docId) {
+    if (!this.isConfigured) {
+      return this.deleteFromLocalStorage(collectionName, docId);
+    }
+
     try {
-      const docRef = doc(db, collectionName, docId)
-      await deleteDoc(docRef)
-      return { success: true }
+      const docRef = doc(db, collectionName, docId);
+      await deleteDoc(docRef);
+      return true;
     } catch (error) {
-      console.error(`Error deleting document ${docId} from ${collectionName}:`, error)
-      throw error
+      console.error(`Error deleting document ${docId}:`, error);
+      return this.deleteFromLocalStorage(collectionName, docId);
     }
   }
 
-  async queryCollection(collectionName, conditions = []) {
+  // LocalStorage fallback methods
+  getFromLocalStorage(collectionName, docId = null) {
     try {
-      let q = collection(db, collectionName)
+      const data = localStorage.getItem(collectionName);
+      if (!data) return docId ? null : [];
       
-      conditions.forEach(condition => {
-        q = query(q, where(condition.field, condition.operator, condition.value))
-      })
-      
-      const querySnapshot = await getDocs(q)
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
+      const items = JSON.parse(data);
+      if (docId) {
+        return items.find(item => item.id === docId) || null;
+      }
+      return items;
     } catch (error) {
-      console.error(`Error querying ${collectionName}:`, error)
-      throw error
+      console.error(`Error reading from localStorage ${collectionName}:`, error);
+      return docId ? null : [];
     }
   }
 
-  // Properties management
-  async getProperties() {
-    return this.getCollection(this.collections.properties)
-  }
-
-  async getProperty(id) {
-    return this.getDocument(this.collections.properties, id)
-  }
-
-  async createProperty(data) {
-    return this.addDocument(this.collections.properties, data)
-  }
-
-  async updateProperty(id, data) {
-    return this.updateDocument(this.collections.properties, id, data)
-  }
-
-  async deleteProperty(id) {
-    return this.deleteDocument(this.collections.properties, id)
-  }
-
-  // Bookings management
-  async getBookings() {
-    return this.getCollection(this.collections.bookings)
-  }
-
-  async getPropertyBookings(propertyId) {
-    return this.queryCollection(this.collections.bookings, [
-      { field: 'property_id', operator: '==', value: propertyId }
-    ])
-  }
-
-  async createBooking(data) {
-    return this.addDocument(this.collections.bookings, data)
-  }
-
-  async updateBooking(id, data) {
-    return this.updateDocument(this.collections.bookings, id, data)
-  }
-
-  async deleteBooking(id) {
-    return this.deleteDocument(this.collections.bookings, id)
-  }
-
-  // Expenses/Transactions management
-  async getExpenses() {
-    return this.getCollection(this.collections.expenses)
-  }
-
-  async getPropertyExpenses(propertyId) {
-    return this.queryCollection(this.collections.expenses, [
-      { field: 'property_id', operator: '==', value: propertyId }
-    ])
-  }
-
-  async createExpense(data) {
-    return this.addDocument(this.collections.expenses, data)
-  }
-
-  async updateExpense(id, data) {
-    return this.updateDocument(this.collections.expenses, id, data)
-  }
-
-  async deleteExpense(id) {
-    return this.deleteDocument(this.collections.expenses, id)
-  }
-
-  // Depreciation management
-  async getDepreciation() {
-    return this.getCollection(this.collections.depreciation)
-  }
-
-  async getPropertyDepreciation(propertyId) {
-    return this.queryCollection(this.collections.depreciation, [
-      { field: 'property_id', operator: '==', value: propertyId }
-    ])
-  }
-
-  async createDepreciation(data) {
-    return this.addDocument(this.collections.depreciation, data)
-  }
-
-  async updateDepreciation(id, data) {
-    return this.updateDocument(this.collections.depreciation, id, data)
-  }
-
-  async deleteDepreciation(id) {
-    return this.deleteDocument(this.collections.depreciation, id)
-  }
-
-  // Material participation management
-  async getMaterialParticipation() {
-    return this.getCollection(this.collections.materialParticipation)
-  }
-
-  async getPropertyParticipation(propertyId) {
-    return this.queryCollection(this.collections.materialParticipation, [
-      { field: 'property_id', operator: '==', value: propertyId }
-    ])
-  }
-
-  async createMaterialParticipation(data) {
-    return this.addDocument(this.collections.materialParticipation, data)
-  }
-
-  async updateMaterialParticipation(id, data) {
-    return this.updateDocument(this.collections.materialParticipation, id, data)
-  }
-
-  async deleteMaterialParticipation(id) {
-    return this.deleteDocument(this.collections.materialParticipation, id)
-  }
-
-  // Tax estimates management
-  async getTaxEstimates() {
-    return this.getCollection(this.collections.taxEstimates)
-  }
-
-  async createTaxEstimate(data) {
-    return this.addDocument(this.collections.taxEstimates, data)
-  }
-
-  async updateTaxEstimate(id, data) {
-    return this.updateDocument(this.collections.taxEstimates, id, data)
-  }
-
-  async deleteTaxEstimate(id) {
-    return this.deleteDocument(this.collections.taxEstimates, id)
-  }
-
-  // Settings management
-  async getSettings() {
-    const settings = await this.getCollection(this.collections.settings)
-    if (settings.length > 0) {
-      return settings[0]
+  addToLocalStorage(collectionName, data) {
+    try {
+      const items = this.getFromLocalStorage(collectionName);
+      const newItem = {
+        id: Date.now().toString(),
+        ...data,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      items.push(newItem);
+      localStorage.setItem(collectionName, JSON.stringify(items));
+      return newItem;
+    } catch (error) {
+      console.error(`Error adding to localStorage ${collectionName}:`, error);
+      return null;
     }
+  }
+
+  updateInLocalStorage(collectionName, docId, data) {
+    try {
+      const items = this.getFromLocalStorage(collectionName);
+      const index = items.findIndex(item => item.id === docId);
+      if (index !== -1) {
+        items[index] = {
+          ...items[index],
+          ...data,
+          updatedAt: new Date().toISOString()
+        };
+        localStorage.setItem(collectionName, JSON.stringify(items));
+        return items[index];
+      }
+      return null;
+    } catch (error) {
+      console.error(`Error updating in localStorage ${collectionName}:`, error);
+      return null;
+    }
+  }
+
+  deleteFromLocalStorage(collectionName, docId) {
+    try {
+      const items = this.getFromLocalStorage(collectionName);
+      const filteredItems = items.filter(item => item.id !== docId);
+      localStorage.setItem(collectionName, JSON.stringify(filteredItems));
+      return true;
+    } catch (error) {
+      console.error(`Error deleting from localStorage ${collectionName}:`, error);
+      return false;
+    }
+  }
+
+  // Connection status
+  getConnectionStatus() {
     return {
-      taxYear: new Date().getFullYear(),
-      defaultCurrency: 'USD',
-      notifications: true
-    }
-  }
-
-  async updateSettings(data) {
-    const settings = await this.getCollection(this.collections.settings)
-    if (settings.length > 0) {
-      return this.updateDocument(this.collections.settings, settings[0].id, data)
-    } else {
-      return this.addDocument(this.collections.settings, data)
-    }
-  }
-
-  // Data export/import
-  async exportAllData() {
-    try {
-      const [properties, bookings, expenses, depreciation, materialParticipation, taxEstimates, settings] = await Promise.all([
-        this.getProperties(),
-        this.getBookings(),
-        this.getExpenses(),
-        this.getDepreciation(),
-        this.getMaterialParticipation(),
-        this.getTaxEstimates(),
-        this.getSettings()
-      ])
-
-      return {
-        properties,
-        bookings,
-        expenses,
-        depreciation,
-        materialParticipation,
-        taxEstimates,
-        settings,
-        exportDate: new Date().toISOString()
-      }
-    } catch (error) {
-      console.error('Error exporting data:', error)
-      throw error
-    }
-  }
-
-  async importData(data) {
-    try {
-      const promises = []
-      
-      if (data.properties) {
-        for (const property of data.properties) {
-          const { id, ...propertyData } = property
-          promises.push(this.createProperty(propertyData))
-        }
-      }
-      
-      if (data.bookings) {
-        for (const booking of data.bookings) {
-          const { id, ...bookingData } = booking
-          promises.push(this.createBooking(bookingData))
-        }
-      }
-      
-      if (data.expenses) {
-        for (const expense of data.expenses) {
-          const { id, ...expenseData } = expense
-          promises.push(this.createExpense(expenseData))
-        }
-      }
-      
-      if (data.depreciation) {
-        for (const dep of data.depreciation) {
-          const { id, ...depData } = dep
-          promises.push(this.createDepreciation(depData))
-        }
-      }
-      
-      if (data.materialParticipation) {
-        for (const participation of data.materialParticipation) {
-          const { id, ...participationData } = participation
-          promises.push(this.createMaterialParticipation(participationData))
-        }
-      }
-      
-      if (data.taxEstimates) {
-        for (const estimate of data.taxEstimates) {
-          const { id, ...estimateData } = estimate
-          promises.push(this.createTaxEstimate(estimateData))
-        }
-      }
-      
-      if (data.settings) {
-        promises.push(this.updateSettings(data.settings))
-      }
-      
-      await Promise.all(promises)
-      return { success: true }
-    } catch (error) {
-      console.error('Error importing data:', error)
-      throw error
-    }
-  }
-
-  async clearAllData() {
-    try {
-      const collections = Object.values(this.collections)
-      const promises = []
-      
-      for (const collectionName of collections) {
-        const docs = await this.getCollection(collectionName)
-        for (const doc of docs) {
-          promises.push(this.deleteDocument(collectionName, doc.id))
-        }
-      }
-      
-      await Promise.all(promises)
-      return { success: true }
-    } catch (error) {
-      console.error('Error clearing data:', error)
-      throw error
-    }
-  }
-
-  // Get storage info (Firebase doesn't have the same limits as localStorage)
-  async getStorageInfo() {
-    return {
-      available: true,
-      used: 'Unlimited',
-      total: 'Unlimited'
-    }
+      isOnline: navigator.onLine,
+      storage: this.isConfigured ? 'firebase' : 'localStorage',
+      firebaseConfigured: this.isConfigured
+    };
   }
 }
 
-export const firebaseService = new FirebaseService() 
+export default new FirebaseService(); 
