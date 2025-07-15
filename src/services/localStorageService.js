@@ -103,14 +103,16 @@ class LocalStorageService {
   saveBooking(booking) {
     const bookings = this.getBookings()
     const existingIndex = bookings.findIndex(b => b.id === booking.id)
-    
+    let saved
     if (existingIndex >= 0) {
       bookings[existingIndex] = { ...bookings[existingIndex], ...booking }
+      saved = bookings[existingIndex]
     } else {
-      bookings.push({ ...booking, id: booking.id || Date.now().toString() })
+      saved = { ...booking, id: booking.id || Date.now().toString() }
+      bookings.push(saved)
     }
-    
-    return this.setItem(this.storageKeys.bookings, bookings)
+    this.setItem(this.storageKeys.bookings, bookings)
+    return saved
   }
 
   deleteBooking(bookingId) {
@@ -127,14 +129,16 @@ class LocalStorageService {
   saveExpense(expense) {
     const expenses = this.getExpenses()
     const existingIndex = expenses.findIndex(e => e.id === expense.id)
-    
+    let saved
     if (existingIndex >= 0) {
       expenses[existingIndex] = { ...expenses[existingIndex], ...expense }
+      saved = expenses[existingIndex]
     } else {
-      expenses.push({ ...expense, id: expense.id || Date.now().toString() })
+      saved = { ...expense, id: expense.id || Date.now().toString() }
+      expenses.push(saved)
     }
-    
-    return this.setItem(this.storageKeys.expenses, expenses)
+    this.setItem(this.storageKeys.expenses, expenses)
+    return saved
   }
 
   deleteExpense(expenseId) {
@@ -151,14 +155,16 @@ class LocalStorageService {
   saveDepreciation(depreciation) {
     const depreciationRecords = this.getDepreciation()
     const existingIndex = depreciationRecords.findIndex(d => d.id === depreciation.id)
-    
+    let saved
     if (existingIndex >= 0) {
       depreciationRecords[existingIndex] = { ...depreciationRecords[existingIndex], ...depreciation }
+      saved = depreciationRecords[existingIndex]
     } else {
-      depreciationRecords.push({ ...depreciation, id: depreciation.id || Date.now().toString() })
+      saved = { ...depreciation, id: depreciation.id || Date.now().toString() }
+      depreciationRecords.push(saved)
     }
-    
-    return this.setItem(this.storageKeys.depreciation, depreciationRecords)
+    this.setItem(this.storageKeys.depreciation, depreciationRecords)
+    return saved
   }
 
   deleteDepreciation(depreciationId) {
@@ -175,14 +181,16 @@ class LocalStorageService {
   saveMaterialParticipation(participation) {
     const participationLogs = this.getMaterialParticipation()
     const existingIndex = participationLogs.findIndex(p => p.id === participation.id)
-    
+    let saved
     if (existingIndex >= 0) {
       participationLogs[existingIndex] = { ...participationLogs[existingIndex], ...participation }
+      saved = participationLogs[existingIndex]
     } else {
-      participationLogs.push({ ...participation, id: participation.id || Date.now().toString() })
+      saved = { ...participation, id: participation.id || Date.now().toString() }
+      participationLogs.push(saved)
     }
-    
-    return this.setItem(this.storageKeys.materialParticipation, participationLogs)
+    this.setItem(this.storageKeys.materialParticipation, participationLogs)
+    return saved
   }
 
   deleteMaterialParticipation(participationId) {
@@ -199,14 +207,16 @@ class LocalStorageService {
   saveTaxEstimate(estimate) {
     const estimates = this.getTaxEstimates()
     const existingIndex = estimates.findIndex(e => e.id === estimate.id)
-    
+    let saved
     if (existingIndex >= 0) {
       estimates[existingIndex] = { ...estimates[existingIndex], ...estimate }
+      saved = estimates[existingIndex]
     } else {
-      estimates.push({ ...estimate, id: estimate.id || Date.now().toString() })
+      saved = { ...estimate, id: estimate.id || Date.now().toString() }
+      estimates.push(saved)
     }
-    
-    return this.setItem(this.storageKeys.taxEstimates, estimates)
+    this.setItem(this.storageKeys.taxEstimates, estimates)
+    return saved
   }
 
   deleteTaxEstimate(estimateId) {

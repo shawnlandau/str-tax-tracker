@@ -13,7 +13,8 @@ import {
   Edit,
   Trash2,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  AlertTriangle
 } from 'lucide-react'
 
 const Transactions = () => {
@@ -146,7 +147,7 @@ const Transactions = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Transactions</h2>
           <p className="text-gray-600">{error}</p>
         </div>

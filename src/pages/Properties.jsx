@@ -122,7 +122,9 @@ const Properties = () => {
         ...newBooking,
         property_id: selectedPropertyId,
         amount: parseFloat(newBooking.amount) || 0,
-        date: new Date().toISOString()
+        check_in: new Date(newBooking.check_in).toISOString(),
+        check_out: new Date(newBooking.check_out).toISOString(),
+        date: new Date().toISOString() // Booking creation date
       }
       
       // Save booking via API
